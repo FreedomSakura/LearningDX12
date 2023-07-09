@@ -139,17 +139,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="D3DAPP.h" />
-    <ClInclude Include="D3DUtil.h" />
-    <ClInclude Include="framework.h" />
-    <ClInclude Include="LearningDX12.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="targetver.h" />
+    <ClInclude Include="D3D12App.h" />
+    <ClInclude Include="GameTime.h" />
+    <ClInclude Include="ToolFunc.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="D3DAPP.cpp" />
-    <ClCompile Include="D3DUtil.cpp" />
+    <ClCompile Include="D3D12App.cpp" />
+    <ClCompile Include="D3D12InitApp.cpp" />
+    <ClCompile Include="D3D12InitApp.h" />
+    <ClCompile Include="GameTime.cpp" />
     <ClCompile Include="LearningDX12.cpp" />
+    <ClCompile Include="ToolFunc.cpp" />
+    <ClCompile Include="WndProc.cpp" />
+    <ClCompile Include="WndProc.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LearningDX12.rc" />

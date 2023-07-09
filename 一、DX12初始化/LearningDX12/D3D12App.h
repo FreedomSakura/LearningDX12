@@ -15,17 +15,27 @@
 #pragma comment(lib, "dxgi.lib")
 
 // DX12工具类——封装了一些通用的函数
-#include "D3DUtil.h"
+#include "ToolFunc.h"
+#include "GameTime.h"
+#include "WndProc.h"
 
 // ComPtr就在这里
 using namespace Microsoft::WRL;
 
 
-class D3DAPP
+class D3D12App
 {
+protected:
+	D3D12App() {};
+	virtual ~D3D12App() {};
+
 public:
-	bool InitD3DPipeline(HWND hwnd);
-	bool Draw();
+	bool Init(HINSTANCE hInstance, int nShowCmd);
+	bool InitWindow(HINSTANCE hInstance, int nShowCmd);
+	bool InitD3DPipeline();
+
+	int Run();
+	virtual bool Draw();
 
 	// Init()里的函数
 	void CreateDevice();
@@ -33,17 +43,20 @@ public:
 	void GetDescriptorSize();
 	void SetMSAA();
 	void CreateCommandObject();
-	void CreateSwapChain(HWND hwnd);
+	void CreateSwapChain();
 	void CreateDescriptorHeap();
 	void CreateRTV();
 	void CreateDSV();
 	void CreateViewPortAndScissorRect();
 
 	// Draw()里的函数！
-	void FlushCmdQueue();
+	void FlushCmdQueue();		// 同步CPU和GPU
+	void CalculateFrameState();	// 计算帧数
 
 
-private:
+protected:
+	HWND m_hwnd = 0;
+
 	ComPtr<IDXGIFactory4> m_dxgiFactory;
 	ComPtr<ID3D12Device> m_d3dDevice;
 	ComPtr<ID3D12Fence> m_fence;
@@ -64,5 +77,10 @@ private:
 	UINT m_dsvDescriptorSize = 0;
 	UINT m_cbv_srv_uavDescriptorSize = 0;
 	UINT m_currentFence = 0;
+
 	UINT m_currentBackBuffer = 0;
+
+	// 计时器类
+	GameTime m_gt;
+
 };

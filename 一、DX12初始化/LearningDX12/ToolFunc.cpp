@@ -1,5 +1,4 @@
-#include "D3DUtil.h"
-
+#include "ToolFunc.h"
 
 DxException::DxException(HRESULT hr, const std::wstring& functionName, const std::wstring& filename, int lineNumber) :
 	ErrorCode(hr),

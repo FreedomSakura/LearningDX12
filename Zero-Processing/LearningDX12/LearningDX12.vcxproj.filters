@@ -15,22 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="framework.h">
+    <ClInclude Include="D3D12App.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="targetver.h">
+    <ClInclude Include="GameTime.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Resource.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="LearningDX12.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DUtil.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DAPP.h">
+    <ClInclude Include="ToolFunc.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -38,10 +29,25 @@
     <ClCompile Include="LearningDX12.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="D3DAPP.cpp">
+    <ClCompile Include="D3D12App.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="D3DUtil.cpp">
+    <ClCompile Include="GameTime.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolFunc.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WndProc.h">
+      <Filter>头文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WndProc.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D12InitApp.h">
+      <Filter>头文件</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D12InitApp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

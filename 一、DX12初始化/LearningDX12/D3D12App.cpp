@@ -1,7 +1,61 @@
-#include "D3DAPP.h"
+#include "D3D12App.h"
+
+// win32相关
+bool D3D12App::Init(HINSTANCE hInstance, int nShowCmd) {
+	InitWindow(hInstance, nShowCmd);
+	InitD3DPipeline();
+
+	return true;
+}
+
+bool D3D12App::InitWindow(HINSTANCE hInstance, int nShowCmd) {
+	//窗口初始化描述结构体(WNDCLASS)
+	WNDCLASS wc;
+	wc.style = CS_HREDRAW | CS_VREDRAW;	//当工作区宽高改变，则重新绘制窗口
+	wc.lpfnWndProc = MainWndProc;	//指定窗口过程
+	wc.cbClsExtra = 0;	//借助这两个字段来为当前应用分配额外的内存空间（这里不分配，所以置0）
+	wc.cbWndExtra = 0;	//借助这两个字段来为当前应用分配额外的内存空间（这里不分配，所以置0）
+	wc.hInstance = hInstance;	//应用程序实例句柄（由WinMain传入）
+	wc.hIcon = LoadIcon(0, IDC_ARROW);	//使用默认的应用程序图标
+	wc.hCursor = LoadCursor(0, IDC_ARROW);	//使用标准的鼠标指针样式
+	wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);	//指定了白色背景画刷句柄
+	wc.lpszMenuName = 0;	//没有菜单栏
+	wc.lpszClassName = L"MainWnd";	//窗口名
+	//窗口类注册失败
+	if (!RegisterClass(&wc))
+	{
+		//消息框函数，参数1：消息框所属窗口句柄，可为NULL。参数2：消息框显示的文本信息。参数3：标题文本。参数4：消息框样式
+		MessageBox(0, L"RegisterClass Failed", 0, 0);
+		return 0;
+	}
+
+	//窗口类注册成功
+	RECT R;	//裁剪矩形
+	R.left = 0;
+	R.top = 0;
+	R.right = 1280;
+	R.bottom = 720;
+	AdjustWindowRect(&R, WS_OVERLAPPEDWINDOW, false);	//根据窗口的客户区大小计算窗口的大小
+	int width = R.right - R.left;
+	int hight = R.bottom - R.top;
+
+	//创建窗口,返回布尔值
+	m_hwnd = CreateWindow(L"MainWnd", L"DX12Initialize", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, hight, 0, 0, hInstance, 0);
+	//窗口创建失败
+	if (!m_hwnd)
+	{
+		MessageBox(0, L"CreatWindow Failed", 0, 0);
+		return 0;
+	}
+	//窗口创建成功,则显示并更新窗口
+	ShowWindow(m_hwnd, nShowCmd);
+	UpdateWindow(m_hwnd);
+
+	return true;
+}
 
 //1、创建设备
-void D3DAPP::CreateDevice()
+void D3D12App::CreateDevice()
 {
 	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&m_dxgiFactory)));
 
@@ -16,21 +70,21 @@ void D3DAPP::CreateDevice()
 }
 
 //2、创建围栏fence，用于同步CPU和GPU
-void D3DAPP::CreateFence()
+void D3D12App::CreateFence()
 {
 	ThrowIfFailed(m_d3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
 }
 
 //3、获取描述符大小（就是获取各种缓冲区的元素的大小，比如深度缓冲区的一个pixel的大小是多少？）
-void D3DAPP::GetDescriptorSize()
+void D3D12App::GetDescriptorSize()
 {
-	UINT rtvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	UINT dsvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	UINT cbv_srv_uavDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	m_rtvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	m_dsvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	m_cbv_srv_uavDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
 //4、设置MSAA属性
-void D3DAPP::SetMSAA()
+void D3D12App::SetMSAA()
 {
 	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msaaQualityLevels;
 	msaaQualityLevels.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	// UNORM是归一化处理的无符号整数
@@ -48,7 +102,7 @@ void D3DAPP::SetMSAA()
 //5、创建命令队列、命令列表、命令分配器
 // 三者的关系： CPU创建命令列表 -> 将关联在命令分配器上的命令传入命令列表 -> 最后将命令传入命令队列给GPU处理
 // 这里只是做了创建三者的工作而已
-void D3DAPP::CreateCommandObject()
+void D3D12App::CreateCommandObject()
 {
 	D3D12_COMMAND_QUEUE_DESC commandQueueDesc = {};
 	commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
@@ -71,7 +125,7 @@ void D3DAPP::CreateCommandObject()
 }
 
 //6、创建交换链
-void D3DAPP::CreateSwapChain(HWND hwnd)
+void D3D12App::CreateSwapChain()
 {
 	m_swapChain.Reset();
 
@@ -84,19 +138,19 @@ void D3DAPP::CreateSwapChain(HWND hwnd)
 	swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED; // 逐行扫描VS隔行扫描
 	swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED; //图像相对屏幕的拉伸（未指定的）
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // 将数据渲染至后台缓冲区（即作为缓冲目标）
-	swapChainDesc.OutputWindow = hwnd; // 渲染窗口的句柄;
+	swapChainDesc.OutputWindow = m_hwnd; // 渲染窗口的句柄;
 	swapChainDesc.SampleDesc.Count = 1; // 多采样数量
 	swapChainDesc.SampleDesc.Quality = 0; // 多采样质量
 	swapChainDesc.Windowed = true; // 是否窗口化
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.BufferCount = 2; // 后台缓冲区数量（双缓冲！）
-	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 	// 利用DXGI接口下的工厂类创建交换链
 	ThrowIfFailed(m_dxgiFactory->CreateSwapChain(m_cmdQueue.Get(), &swapChainDesc, m_swapChain.GetAddressOf()));
 }
 
 //7、创建描述符堆（DescriptorHeap)
-void D3DAPP::CreateDescriptorHeap() {
+void D3D12App::CreateDescriptorHeap() {
 	// 先创建RTV
 	D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc;
 	rtvDescriptorHeapDesc.NumDescriptors = 2;
@@ -106,9 +160,9 @@ void D3DAPP::CreateDescriptorHeap() {
 
 	ThrowIfFailed(m_d3dDevice->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(&m_rtvHeap)));
 
-	// 获取rtv描述符的大小 -> 不获取就会变得不幸...
+	// 获取rtv描述符的大小 -> 不获取就会变得不幸...（其实这一步应该在前面第三步获取描述符大小时就做了！）
 	// 没有这行，一直在cmdList->Close()的时候抛出异常说一个命令列表不能执行多个交换链什么的...
-	m_rtvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	//m_rtvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 	// 再创建DSV
 	D3D12_DESCRIPTOR_HEAP_DESC dsvDescriptorHeapDesc;
@@ -123,7 +177,7 @@ void D3DAPP::CreateDescriptorHeap() {
 //8、创建描述符
 //（1）RTV描述符
 // 从RTV堆中拿到RTV句柄 -> 从交换链上拿到RT资源 -> 创建RTV将RT资源和RTV句柄关联起来 -> 根据RTV大小在堆中做偏移，以便获取下个RTV 
-void D3DAPP::CreateRTV()
+void D3D12App::CreateRTV()
 {
 	// 获取rtv句柄
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
@@ -145,7 +199,7 @@ void D3DAPP::CreateRTV()
 
 
 //（2）DSV描述符
-void D3DAPP::CreateDSV()
+void D3D12App::CreateDSV()
 {
 	//在CPU中创建好深度模板数据资源
 	D3D12_RESOURCE_DESC dsvResourceDesc;
@@ -167,6 +221,7 @@ void D3DAPP::CreateDSV()
 	optClear.DepthStencil.Stencil = 0;	//初始模板值为0
 
 	// 创建一个资源和一个堆，并将资源提交至堆中（将深度模板数据提交至GPU显存中）
+	// 将CPU中的DSV资源绑定到GPU上
 	CD3DX12_HEAP_PROPERTIES properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	ThrowIfFailed(
 		m_d3dDevice->CreateCommittedResource(
@@ -203,12 +258,6 @@ void D3DAPP::CreateDSV()
 		1,	//Barrier屏障个数
 		&barrier
 	);
-
-
-	//// 添加完了所有命令后，将命令从命令列表传入命令队列，也就是CPU传入GPU的过程
-	//ThrowIfFailed(m_cmdList->Close());
-	//ID3D12CommandList* cmdLists[] = { m_cmdList.Get() };
-	//m_cmdQueue->ExecuteCommandLists(_countof(cmdLists), cmdLists);
 }
 
 //9、实现围栏（实现CPU与GPU的同步）
@@ -216,7 +265,7 @@ void D3DAPP::CreateDSV()
 // CPU将命令传到GPU, m_currentFence++（CPU围栏++）;
 // GPU处理完CPU传来的命令后，围栏值++（GPU围栏++）;
 // 然后判定CPU围栏值和GPU围栏值的大小，来确定GPU是否命中围栏点；若未命中，则等待命中后触发事件
-void D3DAPP::FlushCmdQueue()
+void D3D12App::FlushCmdQueue()
 {
 	m_currentFence++;
 	// 当GPU处理完CPU发来的命令后，让GPU围栏++
@@ -234,7 +283,7 @@ void D3DAPP::FlushCmdQueue()
 }
 
 //10、设置视口和裁剪矩形
-void D3DAPP::CreateViewPortAndScissorRect()
+void D3D12App::CreateViewPortAndScissorRect()
 {
 	//视口设置
 	m_viewPort.TopLeftX = 0;
@@ -251,7 +300,7 @@ void D3DAPP::CreateViewPortAndScissorRect()
 	m_scissorRect.bottom = 720;
 }
 
-bool D3DAPP::InitD3DPipeline(HWND hwnd) {
+bool D3D12App::InitD3DPipeline() {
 // 打开D3D12调试层
 #if defined(DEBUG) | defined(_DEBUG)
 	ComPtr<ID3D12Debug> debugController;
@@ -264,7 +313,7 @@ bool D3DAPP::InitD3DPipeline(HWND hwnd) {
 	GetDescriptorSize();
 	SetMSAA();
 	CreateCommandObject();
-	CreateSwapChain(hwnd);
+	CreateSwapChain();
 
 	CreateDescriptorHeap();
 	CreateRTV();
@@ -275,79 +324,148 @@ bool D3DAPP::InitD3DPipeline(HWND hwnd) {
 	return true;
 }
 
-// 绘制（调用一次就是一帧！）
-//功能：将各种资源设置到渲染流水线上，并最终发出绘制命令
-bool D3DAPP::Draw() {
-	//1、重置命令和列表，复用相关内存
-	ThrowIfFailed(m_cmdAllocator->Reset()); // 重复使用记录命令的相关内存
-	ThrowIfFailed(m_cmdList->Reset(m_cmdAllocator.Get(), nullptr)); // 复用命令列表及其内存
+//// 绘制（调用一次就是一帧！）
+////功能：将各种资源设置到渲染流水线上，并最终发出绘制命令
+//bool D3D12App::Draw() {
+//	//1、重置命令和列表，复用相关内存
+//	ThrowIfFailed(m_cmdAllocator->Reset()); // 重复使用记录命令的相关内存
+//	ThrowIfFailed(m_cmdList->Reset(m_cmdAllocator.Get(), nullptr)); // 复用命令列表及其内存
+//
+//	//2、将后台缓冲资源从呈现状态转换到渲染目标状态（即准备接收图像渲染）
+//	UINT& ref_mCurrentBackBuffer = m_currentBackBuffer;
+//	// 转换资源为后台缓冲区资源
+//	CD3DX12_RESOURCE_BARRIER resBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+//		m_swapChainBuffer[ref_mCurrentBackBuffer].Get(),
+//		D3D12_RESOURCE_STATE_PRESENT, // 当前状态：前台缓冲区，呈现状态
+//		D3D12_RESOURCE_STATE_RENDER_TARGET // 当前状态：后台缓冲区，渲染目标状态
+//	);
+//
+//	m_cmdList->ResourceBarrier(
+//		1,
+//		&resBarrier
+//	);
+//
+//	//3、设置
+//	m_cmdList->RSSetViewports(1, &m_viewPort);
+//	m_cmdList->RSSetScissorRects(1, &m_scissorRect);
+//
+//	//4、清除后台缓冲区 & 深度缓冲区
+//	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(),
+//		ref_mCurrentBackBuffer,
+//		m_rtvDescriptorSize);
+//	// 清除RT背景色为暗红，并且不设置裁剪矩形
+//	m_cmdList->ClearRenderTargetView(rtvHandle, DirectX::Colors::DarkRed, 0, nullptr);
+//	// 清除深度缓冲
+//	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
+//	m_cmdList->ClearDepthStencilView(
+//		dsvHandle, // DSV描述符句柄
+//		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
+//		1.0f, // 默认深度值
+//		0,    // 默认模板值
+//		0,    // 裁剪矩形数量
+//		nullptr // 裁剪矩形指针
+//	);
+//
+//	//5、指定将要渲染的缓冲区（指定RTV & DSV）
+//	m_cmdList->OMSetRenderTargets(
+//		1,    // 待绑定的RTV数量
+//		&rtvHandle,
+//		true, // RTV对象在堆内存中是连续存放的
+//		&dsvHandle
+//	);
+//
+//	//6、渲染完成，将后台缓冲区的状态改为呈现状态，将其推向前台缓冲区显示
+//	resBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+//		m_swapChainBuffer[ref_mCurrentBackBuffer].Get(),
+//		D3D12_RESOURCE_STATE_RENDER_TARGET, // 当前状态：后台缓冲区，渲染目标状态
+//		D3D12_RESOURCE_STATE_PRESENT // 当前状态：前台缓冲区，呈现状态
+//	);
+//
+//	m_cmdList->ResourceBarrier(
+//		1,
+//		&resBarrier
+//	);
+//
+//	// 7、8两步其实算是一步！关闭Command List后应当将其中命令传到Command Queue中！
+//	//7、完成命令的记录关闭命令列表
+//	ThrowIfFailed(m_cmdList->Close());
+//
+//	//8、等CPU将命令都准备好，将待执行的命令列表加入GPU的命令队列
+//	ID3D12CommandList* commandLists[] = { m_cmdList.Get() }; // 声明并定义命令列表数组
+//	m_cmdQueue->ExecuteCommandLists(_countof(commandLists), commandLists); // 将命令从命令列表传至命令队列
+//
+//	//9、交换前后台缓冲区索引（0变1，1变0）
+//	//ThrowIfFailed(m_swapChain->Present(0, 0)); -> 第二个参数是Flag，我选择打开垂直同步，所以有下面那些代码
+//	ThrowIfFailed(m_swapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING));
+//	ref_mCurrentBackBuffer = (ref_mCurrentBackBuffer + 1) % 2;
+//
+//	//10、设置围栏值，命中围栏就刷新命令队列，使得CPU和GPU同步
+//	FlushCmdQueue();
+//}
 
-	//2、将后台缓冲资源从呈现状态转换到渲染目标状态（即准备接收图像渲染）
-	UINT& ref_mCurrentBackBuffer = m_currentBackBuffer;
-	// 转换资源为后台缓冲区资源
-	CD3DX12_RESOURCE_BARRIER resBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		m_swapChainBuffer[ref_mCurrentBackBuffer].Get(),
-		D3D12_RESOURCE_STATE_PRESENT, // 当前状态：前台缓冲区，呈现状态
-		D3D12_RESOURCE_STATE_RENDER_TARGET // 当前状态：后台缓冲区，渲染目标状态
-	);
+void D3D12App::CalculateFrameState()
+{
+	static int frameCnt = 0;	//总帧数
+	static float timeElapsed = 0.0f;	//流逝的时间
+	frameCnt++;	//每帧++，经过一秒后其即为FPS值
+	//调试模块
+	/*std::wstring text = std::to_wstring(gt.TotalTime());
+	std::wstring windowText = text;
+	SetWindowText(mhMainWnd, windowText.c_str());*/
+	//判断模块
+	if (m_gt.TotalTime() - timeElapsed >= 1.0f)	//一旦>=0，说明刚好过一秒
+	{
+		float fps = (float)frameCnt;//每秒多少帧
+		float mspf = 1000.0f / fps;	//每帧多少毫秒
 
-	m_cmdList->ResourceBarrier(
-		1,
-		&resBarrier
-	);
+		std::wstring fpsStr = std::to_wstring(fps);//转为宽字符
+		std::wstring mspfStr = std::to_wstring(mspf);
+		//将帧数据显示在窗口上
+		std::wstring windowText = L"D3D12Init    fps:" + fpsStr + L"    " + L"mspf" + mspfStr;
+		SetWindowText(m_hwnd, windowText.c_str());
 
-	//3、设置
-	m_cmdList->RSSetViewports(1, &m_viewPort);
-	m_cmdList->RSSetScissorRects(1, &m_scissorRect);
+		//为计算下一组帧数值而重置
+		frameCnt = 0;
+		timeElapsed += 1.0f;
+	}
+}
 
-	//4、清除后台缓冲区 & 深度缓冲区
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(),
-		ref_mCurrentBackBuffer,
-		m_rtvDescriptorSize);
-	// 清除RT背景色为暗红，并且不设置裁剪矩形
-	m_cmdList->ClearRenderTargetView(rtvHandle, DirectX::Colors::DarkRed, 0, nullptr);
-	// 清除深度缓冲
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
-	m_cmdList->ClearDepthStencilView(
-		dsvHandle, // DSV描述符句柄
-		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
-		1.0f, // 默认深度值
-		0,    // 默认模板值
-		0,    // 裁剪矩形数量
-		nullptr // 裁剪矩形指针
-	);
 
-	//5、指定将要渲染的缓冲区（指定RTV & DSV）
-	m_cmdList->OMSetRenderTargets(
-		1,    // 待绑定的RTV数量
-		&rtvHandle,
-		true, // RTV对象在堆内存中是连续存放的
-		&dsvHandle
-	);
+int D3D12App::Run()
+{
+	MSG msg = { 0 };
 
-	//6、渲染完成，将后台缓冲区的状态改为呈现状态，将其推向前台缓冲区显示
-	resBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		m_swapChainBuffer[ref_mCurrentBackBuffer].Get(),
-		D3D12_RESOURCE_STATE_RENDER_TARGET, // 当前状态：后台缓冲区，渲染目标状态
-		D3D12_RESOURCE_STATE_PRESENT // 当前状态：前台缓冲区，呈现状态
-	);
+	//每次循环开始都要重置计时器
+	m_gt.Reset();
 
-	m_cmdList->ResourceBarrier(
-		1,
-		&resBarrier
-	);
+	// 主消息循环:
+	while (msg.message != WM_QUIT)
+	{
+		// 有窗口消息就处理
+		//if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		// 否则就继续执行渲染 & 游戏逻辑
+		else
+		{
+			Draw();
 
-	//7、完成命令的记录关闭命令列表
-	ThrowIfFailed(m_cmdList->Close());
+			m_gt.Tick();	//计算每两帧间隔时间
+			if (!m_gt.IsStoped())//如果不是暂停状态，我们才运行游戏
+			{
+				CalculateFrameState();
+				Draw();
+			}
+			//如果是暂停状态，则休眠100秒
+			else
+			{
+				Sleep(100);
+			}
+		}
+	}
 
-	//8、等CPU将命令都准备好，将待执行的命令列表加入GPU的命令队列
-	ID3D12CommandList* commandLists[] = { m_cmdList.Get() }; // 声明并定义命令列表数组
-	m_cmdQueue->ExecuteCommandLists(_countof(commandLists), commandLists); // 将命令从命令列表传至命令队列
-
-	//9、交换前后台缓冲区索引（0变1，1变0）
-	ThrowIfFailed(m_swapChain->Present(0, 0));
-	ref_mCurrentBackBuffer = (ref_mCurrentBackBuffer + 1) % 2;
-
-	//10、设置围栏值，命中围栏就刷新命令队列，使得CPU和GPU同步
-	FlushCmdQueue();
+	return (int)msg.wParam;
 }
