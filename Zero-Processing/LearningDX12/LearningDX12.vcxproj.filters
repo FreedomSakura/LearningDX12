@@ -24,6 +24,9 @@
     <ClInclude Include="ToolFunc.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="UploadBufferResource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LearningDX12.cpp">
@@ -48,6 +51,9 @@
       <Filter>头文件</Filter>
     </ClCompile>
     <ClCompile Include="D3D12InitApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="UploadBufferResource.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

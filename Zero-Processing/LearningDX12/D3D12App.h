@@ -6,10 +6,16 @@
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <wrl.h>
-#include <DirectXMath.h>
-#include <DirectXColors.h>
+#include <d3dcompiler.h>
 
-#include "DXUtils/d3dx12.h"
+#include <DirectXMath.h>
+#include <DirectXPackedVector.h>
+#include <DirectXColors.h>
+#include <DirectXCollision.h>
+#include <comdef.h>
+
+#include "DX12Utils/d3dx12.h"
+#include "DX12Utils/MathHelper.h"
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")

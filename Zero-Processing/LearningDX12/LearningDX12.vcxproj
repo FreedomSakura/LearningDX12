@@ -142,6 +142,7 @@
     <ClInclude Include="D3D12App.h" />
     <ClInclude Include="GameTime.h" />
     <ClInclude Include="ToolFunc.h" />
+    <ClInclude Include="UploadBufferResource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="D3D12App.cpp" />
@@ -150,6 +151,7 @@
     <ClCompile Include="GameTime.cpp" />
     <ClCompile Include="LearningDX12.cpp" />
     <ClCompile Include="ToolFunc.cpp" />
+    <ClCompile Include="UploadBufferResource.cpp" />
     <ClCompile Include="WndProc.cpp" />
     <ClCompile Include="WndProc.h" />
   </ItemGroup>
