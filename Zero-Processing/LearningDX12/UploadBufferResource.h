@@ -18,11 +18,12 @@ public:
 	ComPtr<ID3D12Resource> Resource() const;
 
 private:
-	bool m_IsConstantBuffer;
-	UINT m_elementByteSize;
 	// 很可能不是这个类型！
 	ComPtr<ID3D12Resource> m_uploadBuffer;
 	BYTE* m_mappedData;
+
+	bool m_IsConstantBuffer;
+	UINT m_elementByteSize = 0;
 };
 
 // 奇怪的函数，用来钳制常量缓冲区大小（返回256的倍数！）

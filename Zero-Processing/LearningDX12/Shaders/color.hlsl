@@ -20,7 +20,8 @@ VertexOut VS(VertexIn vin)
 	VertexOut vout;
 	
 	vout.PosH = mul(float4(vin.PosL, 1.0f), gWorldViewProj);
-	
+	//vout.PosH = vin.PosL;
+
 	// Just pass vertex color into the pixel shader.
     vout.Color = vin.Color;
     

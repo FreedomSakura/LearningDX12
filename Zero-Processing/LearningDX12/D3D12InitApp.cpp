@@ -82,7 +82,7 @@ bool D3D12InitApp::Draw() {
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(),
 		ref_mCurrentBackBuffer,
 		m_rtvDescriptorSize);
-	// 清除RT背景色为暗红，并且不设置裁剪矩形
+	// 清除RT背景色为淡蓝色，并且不设置裁剪矩形
 	m_cmdList->ClearRenderTargetView(rtvHandle, DirectX::Colors::AliceBlue, 0, nullptr);
 	// 清除深度缓冲
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
@@ -94,6 +94,8 @@ bool D3D12InitApp::Draw() {
 		0,    // 裁剪矩形数量
 		nullptr // 裁剪矩形指针
 	);
+
+
 
 	//5、指定将要渲染的缓冲区（指定RTV & DSV）
 	m_cmdList->OMSetRenderTargets(
@@ -114,6 +116,7 @@ bool D3D12InitApp::Draw() {
 	m_cmdList->SetGraphicsRootSignature(m_rootSignature.Get());
 	// 设置顶点缓冲区
 	m_cmdList->IASetVertexBuffers(0, 1, &GetVbv());
+	//m_cmdList->IASetIndexBuffer(&GetIbv());
 	// 将图元拓扑传入流水线
 	m_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	// 设置根描述符表
@@ -286,11 +289,13 @@ void D3D12InitApp::BuildRootSignature() {
 
 // 将顶点&索引数据复制到CPU系统内存，再使用CreateDefaultBuffer将其复制到GPU缓存中
 void D3D12InitApp::BuildGeometry() {
-	m_vbByteSize = sizeof(vertices) * 8;
-	m_ibByteSize = sizeof(indices) * 8;
+	m_vbByteSize = sizeof(Vertex) * 8;
+	m_ibByteSize = sizeof(int) * 36;
 	// 创建内存空间
 	ThrowIfFailed(D3DCreateBlob(m_vbByteSize, m_vertexBufferCPU.GetAddressOf()));
 	ThrowIfFailed(D3DCreateBlob(m_ibByteSize, m_indexBufferCPU.GetAddressOf()));
+	//ThrowIfFailed(D3DCreateBlob(m_vbByteSize, &m_vertexBufferCPU));
+	//ThrowIfFailed(D3DCreateBlob(m_ibByteSize, &m_indexBufferCPU));
 	// 复制到CPU系统内存
 	CopyMemory(m_vertexBufferCPU->GetBufferPointer(), vertices.data(), m_vbByteSize);
 	CopyMemory(m_indexBufferCPU->GetBufferPointer(), indices.data(), m_ibByteSize);
@@ -347,6 +352,9 @@ bool D3D12InitApp::Init(HINSTANCE hInstance, int nShowCmd) {
 
 	if (!D3D12App::Init(hInstance, nShowCmd))
 		return false;
+
+	//CreateVBV();
+	//CreateIBV();
 
 	CreateCBV();
 	BuildRootSignature();

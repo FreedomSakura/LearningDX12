@@ -19,6 +19,7 @@
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib,"d3dcompiler.lib")
+#pragma comment(lib, "dxguid.lib")
 
 // DX12工具类——封装了一些通用的函数
 #include "ToolFunc.h"
