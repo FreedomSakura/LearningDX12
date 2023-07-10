@@ -18,7 +18,7 @@ std::wstring DxException::ToString()const
 }
 
 // 创建上传堆 & 默认堆
-ComPtr<ID3D12Resource> ToolFunc::CreateDefaultBuffer(ComPtr<ID3D12Device> d3dDevice, ComPtr<ID3D12GraphicsCommandList> cmdList, UINT64 byteSize, const void* initData, ComPtr<ID3D12Resource>& uploadBuffer) {
+ComPtr<ID3D12Resource> ToolFunc::CreateDefaultBuffer(ID3D12Device* d3dDevice, ID3D12GraphicsCommandList* cmdList, UINT64 byteSize, const void* initData, ComPtr<ID3D12Resource>& uploadBuffer) {
 	// 创建上传堆，作用是：写入CPU内存数据，并传输给默认堆
 	CD3DX12_HEAP_PROPERTIES properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(byteSize);
@@ -29,7 +29,7 @@ ComPtr<ID3D12Resource> ToolFunc::CreateDefaultBuffer(ComPtr<ID3D12Device> d3dDev
 			&resourceDesc,	// 构造函数的奇怪写法！
 			D3D12_RESOURCE_STATE_GENERIC_READ,			// 上传堆里的资源需要复制给默认堆，故是可读状态
 			nullptr,
-			IID_PPV_ARGS(&uploadBuffer)
+			IID_PPV_ARGS(uploadBuffer.GetAddressOf())
 		)
 	);
 
@@ -43,7 +43,7 @@ ComPtr<ID3D12Resource> ToolFunc::CreateDefaultBuffer(ComPtr<ID3D12Device> d3dDev
 			&CD3DX12_RESOURCE_DESC::Buffer(byteSize),
 			D3D12_RESOURCE_STATE_COMMON,		// 默认堆为最终存储数据的地方，所以暂时初始化为普通状态
 			nullptr,
-			IID_PPV_ARGS(&defaultBuffer)
+			IID_PPV_ARGS(defaultBuffer.GetAddressOf())
 		)
 	);
 
@@ -60,12 +60,12 @@ ComPtr<ID3D12Resource> ToolFunc::CreateDefaultBuffer(ComPtr<ID3D12Device> d3dDev
 	);
 
 	// 将数据从CPU内存拷贝到GPU缓存
-	D3D12_SUBRESOURCE_DATA subResourceData;
+	D3D12_SUBRESOURCE_DATA subResourceData = {};
 	subResourceData.pData = initData;
 	subResourceData.RowPitch = byteSize;
 	subResourceData.SlicePitch = subResourceData.RowPitch;
 	// 将数据从CPU内存拷贝至上传堆，再从上传堆拷贝至默认堆
-	UpdateSubresources<1>(cmdList.Get(), defaultBuffer.Get(), uploadBuffer.Get(), 0, 0, 1, &subResourceData);
+	UpdateSubresources<1>(cmdList, defaultBuffer.Get(), uploadBuffer.Get(), 0, 0, 1, &subResourceData);
 
 
 	// 再将默认堆资源从COPY_DEST转为GENERIC_READ状态（只提供给着色器访问！）

@@ -43,6 +43,7 @@ public:
 
 	int Run();
 	virtual bool Draw() = 0;
+	virtual void Update() = 0;
 
 	// Init()ÀïµÄº¯Êý
 	void CreateDevice();

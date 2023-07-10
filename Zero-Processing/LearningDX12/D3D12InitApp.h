@@ -22,11 +22,11 @@ public:
 	virtual bool Init(HINSTANCE hInstance, int nShowCmd) override;
 
 private:
-    virtual bool Draw() override;
 
-	// 创建顶点缓冲区描述符（vbv） & 索引缓冲区描述符（ibv）
-	bool CreateVBV();
-	bool CreateIBV();
+    virtual bool Draw() override;
+	// 更新矩阵（实际上是更新 常量缓冲区）
+	void Update();
+
 	bool CreateCBV();
 	// 创建根签名
 	void BuildRootSignature();
@@ -41,8 +41,7 @@ private:
 	D3D12_VERTEX_BUFFER_VIEW GetVbv() const;
 	D3D12_INDEX_BUFFER_VIEW GetIbv() const;
 
-	// 更新矩阵（实际上是更新 常量缓冲区）
-	void Update();
+
 
 private:
 	// 上传堆
@@ -74,13 +73,13 @@ private:
 	//};
 	// Shader部分
 	// 输入布局描述（类似UnityLab里的 : Position）
-	std::vector<D3D12_INPUT_ELEMENT_DESC> m_inputLayoutDesc = { };
+	std::vector<D3D12_INPUT_ELEMENT_DESC> m_inputLayoutDesc;
 	// Shader编译后得到的字节码
 	ComPtr<ID3DBlob> m_vsBytecode;
 	ComPtr<ID3DBlob> m_psBytecode;
 
 	// 流水线状态对象
-	ComPtr<ID3D12PipelineState> m_PSO; // 暂时还不知道是什么类型的
+	ComPtr<ID3D12PipelineState> m_PSO = nullptr; // 暂时还不知道是什么类型的
 
 };
 
