@@ -1,5 +1,59 @@
 #include "D3D12InitApp.h"
 
+//定义顶点结构体
+struct Vertex
+{
+	XMFLOAT3 Pos;
+	XMFLOAT4 Color;
+};
+//实例化顶点结构体并填充
+std::array<Vertex, 8> vertices =
+{
+	Vertex({ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(Colors::White) }),
+	Vertex({ XMFLOAT3(-1.0f, +1.0f, -1.0f), XMFLOAT4(Colors::Black) }),
+	Vertex({ XMFLOAT3(+1.0f, +1.0f, -1.0f), XMFLOAT4(Colors::Red) }),
+	Vertex({ XMFLOAT3(+1.0f, -1.0f, -1.0f), XMFLOAT4(Colors::Green) }),
+	Vertex({ XMFLOAT3(-1.0f, -1.0f, +1.0f), XMFLOAT4(Colors::Blue) }),
+	Vertex({ XMFLOAT3(-1.0f, +1.0f, +1.0f), XMFLOAT4(Colors::Yellow) }),
+	Vertex({ XMFLOAT3(+1.0f, +1.0f, +1.0f), XMFLOAT4(Colors::Cyan) }),
+	Vertex({ XMFLOAT3(+1.0f, -1.0f, +1.0f), XMFLOAT4(Colors::Magenta) })
+};
+
+std::array<std::uint16_t, 36> indices =
+{
+	//前
+	0, 1, 2,
+	0, 2, 3,
+
+	//后
+	4, 6, 5,
+	4, 7, 6,
+
+	//左
+	4, 5, 1,
+	4, 1, 0,
+
+	//右
+	3, 2, 6,
+	3, 6, 7,
+
+	//上
+	1, 5, 6,
+	1, 6, 2,
+
+	//下
+	4, 0, 3,
+	4, 3, 7
+};
+
+
+//单个物体的常量数据
+struct ObjectConstants
+{
+	//初始化物体空间变换到裁剪空间矩阵，Identity4x4()是单位矩阵，需要包含MathHelper头文件
+	XMFLOAT4X4 worldViewProj = MathHelper::Identity4x4();
+};
+
 
 // 绘制（调用一次就是一帧！）
 //功能：将各种资源设置到渲染流水线上，并最终发出绘制命令
@@ -78,75 +132,19 @@ bool D3D12InitApp::Draw() {
 
 	//10、设置围栏值，命中围栏就刷新命令队列，使得CPU和GPU同步
 	FlushCmdQueue();
+
+	return true;
 }
 
-// 创建上传堆 & 默认堆
-ComPtr<ID3D12Resource> D3D12InitApp::CreateDefaultBuffer(UINT64 byteSize, const void* initData, ComPtr<ID3D12Resource>& uploadBuffer) {
-	// 创建上传堆，作用是：写入CPU内存数据，并传输给默认堆
-	ThrowIfFailed(
-		m_d3dDevice->CreateCommittedResource(
-			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), // 创建类型为 上传堆 的堆
-			D3D12_HEAP_FLAG_NONE,	
-			&CD3DX12_RESOURCE_DESC::Buffer(byteSize),	// 构造函数的奇怪写法！
-			D3D12_RESOURCE_STATE_GENERIC_READ,			// 上传堆里的资源需要复制给默认堆，故是可读状态
-			nullptr,
-			IID_PPV_ARGS(&uploadBuffer)
-		)
-	);
-
-	// 创建默认堆，作为上传堆的数据传输对象
-	ComPtr<ID3D12Resource> defaultBuffer;
-	ThrowIfFailed(
-		m_d3dDevice->CreateCommittedResource(
-			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE,
-			&CD3DX12_RESOURCE_DESC::Buffer(byteSize),
-			D3D12_RESOURCE_STATE_COMMON,		// 默认堆为最终存储数据的地方，所以暂时初始化为普通状态
-			nullptr,
-			IID_PPV_ARGS(&defaultBuffer)
-		)
-	);
-
-	// 将资源从COMMON状态转换到COPY_DEST状态（默认堆此时作为接收数据的目标）
-	m_cmdList->ResourceBarrier(
-		1,
-		&CD3DX12_RESOURCE_BARRIER::Transition(
-			defaultBuffer.Get(),
-			D3D12_RESOURCE_STATE_COMMON,
-			D3D12_RESOURCE_STATE_COPY_DEST
-		)
-	);
-
-	// 将数据从CPU内存拷贝到GPU缓存
-	D3D12_SUBRESOURCE_DATA subResourceData;
-	subResourceData.pData = initData;
-	subResourceData.RowPitch = byteSize;
-	subResourceData.SlicePitch = subResourceData.RowPitch;
-	// 将数据从CPU内存拷贝至上传堆，再从上传堆拷贝至默认堆
-	UpdateSubresources<1>(m_cmdList.Get(), defaultBuffer.Get(), uploadBuffer.Get(), 0, 0, 1, &subResourceData);
-
-
-	// 再将默认堆资源从COPY_DEST转为GENERIC_READ状态（只提供给着色器访问！）
-	m_cmdList->ResourceBarrier(
-		1,
-		&CD3DX12_RESOURCE_BARRIER::Transition(defaultBuffer.Get(),
-			D3D12_RESOURCE_STATE_COPY_DEST,
-			D3D12_RESOURCE_STATE_GENERIC_READ
-		)
-	);
-
-	return defaultBuffer;
-}
 
 // 这三个缓冲区创建的代码都有点问题，明天（7-10）再改！
 // 创建顶点缓冲区描述符（vbv） & 索引缓冲区描述符（ibv）
 bool D3D12InitApp::CreateVBV() {
-	ComPtr<ID3D12Resource> vertexBufferUploader = nullptr;
-	vertexBufferGPU = D3D12InitApp::CreateDefaultBuffer(sizeof(vertices), vertices, vertexBufferUploader);
+	m_vertexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice, m_cmdList, sizeof(vertices), vertices.data(), m_vertexBufferUploader);
 	
 	// 将顶点数据绑定至渲染流水线
 	D3D12_VERTEX_BUFFER_VIEW vbv;
-	vbv.BufferLocation = vertexBufferGPU->GetGPUVirtualAddress();	// 顶点缓冲区资源的虚拟地址
+	vbv.BufferLocation = m_vertexBufferGPU->GetGPUVirtualAddress();	// 顶点缓冲区资源的虚拟地址
 	vbv.SizeInBytes = sizeof(Vertex) * 8;
 	vbv.StrideInBytes = sizeof(Vertex);
 	
@@ -155,18 +153,18 @@ bool D3D12InitApp::CreateVBV() {
 }
 
 bool D3D12InitApp::CreateIBV() {
-	ThrowIfFailed(D3DCreateBlob(ibByteSize, &indexBufferCpu));	//创建索引数据内存空间
+	ThrowIfFailed(D3DCreateBlob(m_ibByteSize, &m_indexBufferCPU));	//创建索引数据内存空间
 
-	CopyMemory(indexBufferCpu->GetBufferPointer(), indices.data(), ibByteSize);	//将索引数据拷贝至索引系统内存中
+	CopyMemory(m_indexBufferCPU->GetBufferPointer(), indices.data(), m_ibByteSize);	//将索引数据拷贝至索引系统内存中
 
-	indexBufferGpu = ToolFunc::CreateDefaultBuffer(d3dDevice.Get(), cmdList.Get(), ibByteSize, indices.data(), indexBufferUploader);
+	m_indexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice, m_cmdList, m_ibByteSize, indices.data(), m_indexBufferUploader);
 
 	D3D12_INDEX_BUFFER_VIEW ibv;
-	ibv.BufferLocation = indexBufferGpu->GetGPUVirtualAddress();
+	ibv.BufferLocation = m_indexBufferGPU->GetGPUVirtualAddress();
 	ibv.Format = DXGI_FORMAT_R16_UINT;
-	ibv.SizeInBytes = ibByteSize;
+	ibv.SizeInBytes = m_ibByteSize;
 	//设置索引缓冲区
-	cmdList->IASetIndexBuffer(&ibv());
+	m_cmdList->IASetIndexBuffer(&ibv);
 }
 
 
@@ -196,4 +194,103 @@ bool D3D12InitApp::CreateCBV() {
 	cbvDesc.BufferLocation = address;
 	cbvDesc.SizeInBytes = objConstSize;
 	m_d3dDevice->CreateConstantBufferView(&cbvDesc, cbvHeap->GetCPUDescriptorHandleForHeapStart());
+}
+
+// 创建根签名
+void D3D12InitApp::BuildRootSignature() {
+	// 根参数可以是描述符表、根描述符、根常量
+	CD3DX12_ROOT_PARAMETER slotRootParameter[1];
+	// 创建由单个CBV所组成的描述符表
+	CD3DX12_DESCRIPTOR_RANGE cbvTable;
+	cbvTable.Init(
+		D3D12_DESCRIPTOR_RANGE_TYPE_CBV, // 描述符类型
+		1,// 描述符数量
+		0 // 描述符所绑定的寄存器槽号（有点像TEXTURE0这样？）
+	);
+
+	slotRootParameter[0].InitAsDescriptorTable(1, &cbvTable);
+
+	// 根签名由一组根参数构成
+	CD3DX12_ROOT_SIGNATURE_DESC rootSig(
+		1, // 根参数数量
+		slotRootParameter, // 根参数指针
+		0,
+		nullptr,
+		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+	);
+
+	// 用单个寄存器槽来创建一个根签名，该槽位指向一个含有单个常量缓冲区的描述符区域
+	ComPtr<ID3DBlob> serializedRootSig = nullptr;
+	ComPtr<ID3DBlob> errorBlob = nullptr;
+	HRESULT hr = D3D12SerializeRootSignature(
+		&rootSig, 
+		D3D_ROOT_SIGNATURE_VERSION_1, 
+		&serializedRootSig, 
+		&errorBlob
+	);
+
+
+	if (!errorBlob)
+		OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+	ThrowIfFailed(hr);
+	
+	ThrowIfFailed(
+		m_d3dDevice->CreateRootSignature(
+			0,
+			serializedRootSig->GetBufferPointer(),
+			serializedRootSig->GetBufferSize(),
+			IID_PPV_ARGS(&m_rootSignature)
+		)
+	);
+}
+
+// 将顶点&索引数据复制到CPU系统内存，再使用CreateDefaultBuffer将其复制到GPU缓存中
+void D3D12InitApp::BuildGeometry() {
+	// 创建内存空间
+	ThrowIfFailed(D3DCreateBlob(m_vbByteSize, &m_vertexBufferCPU));
+	ThrowIfFailed(D3DCreateBlob(m_ibByteSize, &m_indexBufferCPU));
+	// 复制到CPU系统内存
+	CopyMemory(m_vertexBufferCPU->GetBufferPointer(), vertices.data(), m_vbByteSize);
+	CopyMemory(m_indexBufferCPU->GetBufferPointer(), indices.data(), m_ibByteSize);
+	// 拷贝数据到GPU缓存中
+	m_vertexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), m_vbByteSize, vertices.data(), m_vertexBufferUploader);
+	m_indexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), m_ibByteSize, indices.data(), m_indexBufferUploader);
+}
+
+// 构建PSO（PipeLineStateObject）
+// 将之前定义的各种东西绑定到渲染流水线上！
+void D3D12InitApp::BuildPSO() {
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	psoDesc.InputLayout = { m_inputLayoutDesc.data(), (UINT)m_inputLayoutDesc.size() };
+	psoDesc.pRootSignature = m_rootSignature.Get();
+	psoDesc.VS = { reinterpret_cast<BYTE*>(m_vsBytecode->GetBufferPointer()), m_vsBytecode->GetBufferSize() };
+	psoDesc.PS = { reinterpret_cast<BYTE*>(m_psBytecode->GetBufferPointer()), m_psBytecode->GetBufferSize() };
+	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	psoDesc.SampleMask = UINT_MAX;	//0xffffffff,全部采样，没有遮罩
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	psoDesc.NumRenderTargets = 1;
+	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;	//归一化的无符号整型
+	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	psoDesc.SampleDesc.Count = 1;	//不使用4XMSAA
+	psoDesc.SampleDesc.Quality = 0;	////不使用4XMSAA
+
+	
+	ThrowIfFailed(m_d3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_PSO)));
+}
+
+void D3D12InitApp::BuildByteCodeAndInputLayout() {
+	// 输入布局
+	m_inputLayoutDesc =
+	{
+		  { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		  { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+	};
+
+	// 将.hlsl文件编译为字节码
+	HRESULT hr = S_OK;
+	m_vsBytecode = ToolFunc::CompileShader(L"Shaders\\color.hlsl", nullptr, "VS", "vs_5_0");
+	m_psBytecode = ToolFunc::CompileShader(L"Shaders\\color.hlsl", nullptr, "PS", "ps_5_0");
 }

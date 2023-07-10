@@ -78,4 +78,6 @@ bool D3D12InitApp::Draw() {
 
 	//10、设置围栏值，命中围栏就刷新命令队列，使得CPU和GPU同步
 	FlushCmdQueue();
+
+	return true;
 }

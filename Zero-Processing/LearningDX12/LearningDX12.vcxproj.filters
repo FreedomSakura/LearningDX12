@@ -53,9 +53,6 @@
     <ClCompile Include="D3D12InitApp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="UploadBufferResource.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LearningDX12.rc">

@@ -1,5 +1,9 @@
 #include "D3D12App.h"
 
+bool D3D12App::Draw() {
+	return true;
+}
+
 // win32ฯเนุ
 bool D3D12App::Init(HINSTANCE hInstance, int nShowCmd) {
 	InitWindow(hInstance, nShowCmd);

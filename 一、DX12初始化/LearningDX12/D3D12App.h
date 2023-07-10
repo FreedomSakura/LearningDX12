@@ -35,7 +35,7 @@ public:
 	bool InitD3DPipeline();
 
 	int Run();
-	virtual bool Draw();
+	virtual bool Draw() = 0;
 
 	// Init()ÀïµÄº¯Êý
 	void CreateDevice();

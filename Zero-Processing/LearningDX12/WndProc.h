@@ -1,3 +1,5 @@
+#pragma once
+
 #include <windows.h>
 
 //  º¯Êý: WndProc(HWND, UINT, WPARAM, LPARAM)

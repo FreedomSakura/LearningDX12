@@ -24,10 +24,10 @@
 #include "ToolFunc.h"
 #include "GameTime.h"
 #include "WndProc.h"
+#include "UploadBufferResource.h"
 
 // ComPtr就在这里
 using namespace Microsoft::WRL;
-
 
 class D3D12App
 {
