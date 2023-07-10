@@ -265,8 +265,8 @@ void D3D12InitApp::BuildRootSignature() {
 	HRESULT hr = D3D12SerializeRootSignature(
 		&rootSig, 
 		D3D_ROOT_SIGNATURE_VERSION_1, 
-		&serializedRootSig, 
-		&errorBlob
+		serializedRootSig.GetAddressOf(), 
+		errorBlob.GetAddressOf()
 	);
 
 
