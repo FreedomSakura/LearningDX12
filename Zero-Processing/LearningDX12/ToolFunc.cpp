@@ -21,11 +21,12 @@ std::wstring DxException::ToString()const
 ComPtr<ID3D12Resource> ToolFunc::CreateDefaultBuffer(ComPtr<ID3D12Device> d3dDevice, ComPtr<ID3D12GraphicsCommandList> cmdList, UINT64 byteSize, const void* initData, ComPtr<ID3D12Resource>& uploadBuffer) {
 	// 创建上传堆，作用是：写入CPU内存数据，并传输给默认堆
 	CD3DX12_HEAP_PROPERTIES properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(byteSize);
 	ThrowIfFailed(
 		d3dDevice->CreateCommittedResource(
 			&properties, // 创建类型为 上传堆 的堆
 			D3D12_HEAP_FLAG_NONE,
-			&CD3DX12_RESOURCE_DESC::Buffer(byteSize),	// 构造函数的奇怪写法！
+			&resourceDesc,	// 构造函数的奇怪写法！
 			D3D12_RESOURCE_STATE_GENERIC_READ,			// 上传堆里的资源需要复制给默认堆，故是可读状态
 			nullptr,
 			IID_PPV_ARGS(&uploadBuffer)
@@ -114,6 +115,8 @@ ComPtr<ID3DBlob> ToolFunc::CompileShader(
 	{
 		OutputDebugStringA((char*)errors->GetBufferPointer());
 	}
+
+	// 如果这里报错说什么：未知错误，说明你shader语法写错了...（这报错信息真不明显...）
 	ThrowIfFailed(hr);
 
 	return byteCode;

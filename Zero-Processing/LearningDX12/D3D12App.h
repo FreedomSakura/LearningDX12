@@ -36,12 +36,12 @@ protected:
 	virtual ~D3D12App() {};
 
 public:
-	bool Init(HINSTANCE hInstance, int nShowCmd);
+	virtual bool Init(HINSTANCE hInstance, int nShowCmd);
 	bool InitWindow(HINSTANCE hInstance, int nShowCmd);
 	bool InitD3DPipeline();
 
 	int Run();
-	virtual bool Draw();
+	virtual bool Draw() = 0;
 
 	// Init()ÀïµÄº¯Êý
 	void CreateDevice();

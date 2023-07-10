@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "ToolFunc.h"
 
 /// <summary>

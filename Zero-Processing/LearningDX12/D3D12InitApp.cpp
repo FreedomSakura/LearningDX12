@@ -46,14 +46,12 @@ std::array<std::uint16_t, 36> indices =
 	4, 3, 7
 };
 
-
 //单个物体的常量数据
 struct ObjectConstants
 {
 	//初始化物体空间变换到裁剪空间矩阵，Identity4x4()是单位矩阵，需要包含MathHelper头文件
 	XMFLOAT4X4 worldViewProj = MathHelper::Identity4x4();
 };
-
 
 // 绘制（调用一次就是一帧！）
 //功能：将各种资源设置到渲染流水线上，并最终发出绘制命令
@@ -104,6 +102,41 @@ bool D3D12InitApp::Draw() {
 		true, // RTV对象在堆内存中是连续存放的
 		&dsvHandle
 	);
+
+
+	///////////////////////////////////////////////////////////////
+	// 应该是在这里添加渲染代码
+	///////////////////////////////////////////////////////////////
+	// 设置CBV描述符堆
+	ID3D12DescriptorHeap* descriHeaps[] = { m_cbvHeap.Get() };
+	m_cmdList->SetDescriptorHeaps(_countof(descriHeaps), descriHeaps);
+	// 设置根签名
+	m_cmdList->SetGraphicsRootSignature(m_rootSignature.Get());
+	// 设置顶点缓冲区
+	m_cmdList->IASetVertexBuffers(0, 1, &GetVbv());
+	// 将图元拓扑传入流水线
+	m_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	// 设置根描述符表
+	m_cmdList->SetGraphicsRootDescriptorTable(
+		0, // 根参数的起始索引
+		m_cbvHeap->GetGPUDescriptorHandleForHeapStart()
+	);
+
+	// 绘制顶点！！！！！
+	m_cmdList->DrawIndexedInstanced(
+		sizeof(indices), // 每个实例要绘制的索引数
+		1, // 实例化个数
+		0, // 起始索引位置
+		0, // 子物体起始索引在全局索引中的位置
+		0  // 实例化的高级技术，暂时设为0 
+	);
+
+
+	// 更新一下矩阵？
+	Update();
+
+
+
 
 	//6、渲染完成，将后台缓冲区的状态改为呈现状态，将其推向前台缓冲区显示
 	resBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
@@ -171,33 +204,31 @@ bool D3D12InitApp::CreateIBV() {
 	return true;
 }
 
-
+// 创建常量描述符
 bool D3D12InitApp::CreateCBV() {
 	UINT objConstSize = CalcConstantBufferByteSize(sizeof(ObjectConstants));
-	//创建CBV堆
-	ComPtr<ID3D12DescriptorHeap> cbvHeap;
+	// 创建CBV堆
 	D3D12_DESCRIPTOR_HEAP_DESC cbHeapDesc;
 	cbHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	cbHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	cbHeapDesc.NumDescriptors = 1;
 	cbHeapDesc.NodeMask = 0;
-	ThrowIfFailed(m_d3dDevice->CreateDescriptorHeap(&cbHeapDesc, IID_PPV_ARGS(&cbvHeap)));
+	ThrowIfFailed(m_d3dDevice->CreateDescriptorHeap(&cbHeapDesc, IID_PPV_ARGS(&m_cbvHeap)));
 
-	//定义并获得物体的常量缓冲区，然后得到其首地址
-	std::unique_ptr<UploadBufferResource<ObjectConstants>> objCB = nullptr;
-	//elementCount为1（1个子物体常量缓冲元素），isConstantBuffer为ture（是常量缓冲区）
-	objCB = std::make_unique<UploadBufferResource<ObjectConstants>>(m_d3dDevice.Get(), 1, true);
-	//获得常量缓冲区首地址
+	// 定义并获得物体的常量缓冲区，然后得到其首地址
+	// elementCount为1（1个子物体常量缓冲元素），isConstantBuffer为ture（是常量缓冲区）
+	m_objCB = std::make_unique<UploadBufferResource<ObjectConstants>>(m_d3dDevice.Get(), 1, true);
+	// 获得常量缓冲区首地址
 	D3D12_GPU_VIRTUAL_ADDRESS address;
-	address = objCB->Resource()->GetGPUVirtualAddress();
-	//通过常量缓冲区元素偏移值计算最终的元素地址
+	address = m_objCB->Resource()->GetGPUVirtualAddress();
+	// 通过常量缓冲区元素偏移值计算最终的元素地址
 	int cbElementIndex = 0;	//常量缓冲区元素下标
 	address += cbElementIndex * objConstSize;
-	//创建CBV描述符
+	// 创建CBV描述符
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
 	cbvDesc.BufferLocation = address;
 	cbvDesc.SizeInBytes = objConstSize;
-	m_d3dDevice->CreateConstantBufferView(&cbvDesc, cbvHeap->GetCPUDescriptorHandleForHeapStart());
+	m_d3dDevice->CreateConstantBufferView(&cbvDesc, m_cbvHeap->GetCPUDescriptorHandleForHeapStart());
 
 	return true;
 }
@@ -236,10 +267,13 @@ void D3D12InitApp::BuildRootSignature() {
 	);
 
 
-	if (!errorBlob)
+	if (errorBlob != nullptr)
 		OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+
 	ThrowIfFailed(hr);
-	
+
+	auto p = serializedRootSig;
+
 	ThrowIfFailed(
 		m_d3dDevice->CreateRootSignature(
 			0,
@@ -252,15 +286,17 @@ void D3D12InitApp::BuildRootSignature() {
 
 // 将顶点&索引数据复制到CPU系统内存，再使用CreateDefaultBuffer将其复制到GPU缓存中
 void D3D12InitApp::BuildGeometry() {
+	m_vbByteSize = sizeof(vertices) * 8;
+	m_ibByteSize = sizeof(indices) * 8;
 	// 创建内存空间
-	//ThrowIfFailed(D3DCreateBlob(m_vbByteSize, m_vertexBufferCPU.GetAddressOf()));
-	//ThrowIfFailed(D3DCreateBlob(m_ibByteSize, m_indexBufferCPU.GetAddressOf()));
+	ThrowIfFailed(D3DCreateBlob(m_vbByteSize, m_vertexBufferCPU.GetAddressOf()));
+	ThrowIfFailed(D3DCreateBlob(m_ibByteSize, m_indexBufferCPU.GetAddressOf()));
 	// 复制到CPU系统内存
 	CopyMemory(m_vertexBufferCPU->GetBufferPointer(), vertices.data(), m_vbByteSize);
 	CopyMemory(m_indexBufferCPU->GetBufferPointer(), indices.data(), m_ibByteSize);
 	// 拷贝数据到GPU缓存中
-	m_vertexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), m_vbByteSize, vertices.data(), m_vertexBufferUploader);
-	m_indexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), m_ibByteSize, indices.data(), m_indexBufferUploader);
+	m_vertexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice, m_cmdList, m_vbByteSize, vertices.data(), m_vertexBufferUploader);
+	m_indexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice, m_cmdList, m_ibByteSize, indices.data(), m_indexBufferUploader);
 }
 
 // 构建PSO（PipeLineStateObject）
@@ -299,4 +335,75 @@ void D3D12InitApp::BuildByteCodeAndInputLayout() {
 	HRESULT hr = S_OK;
 	m_vsBytecode = ToolFunc::CompileShader(L"Shaders\\color.hlsl", nullptr, "VS", "vs_5_0");
 	m_psBytecode = ToolFunc::CompileShader(L"Shaders\\color.hlsl", nullptr, "PS", "ps_5_0");
+}
+
+bool D3D12InitApp::Init(HINSTANCE hInstance, int nShowCmd) {
+	// 打开D3D12调试层
+#if defined(DEBUG) | defined(_DEBUG)
+	ComPtr<ID3D12Debug> debugController;
+	ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
+	debugController->EnableDebugLayer();
+#endif
+
+	if (!D3D12App::Init(hInstance, nShowCmd))
+		return false;
+
+	CreateCBV();
+	BuildRootSignature();
+	BuildByteCodeAndInputLayout();
+	BuildGeometry();
+	BuildPSO();
+
+	// 这里关闭命令列表会抛出异常，貌似是说已经关闭了？
+	//ThrowIfFailed(m_cmdList->Close());
+	ID3D12CommandList* cmdLists[] = { m_cmdList.Get() };
+	m_cmdQueue->ExecuteCommandLists(_countof(cmdLists), cmdLists);
+
+	FlushCmdQueue();
+
+	return true;
+}
+
+// 获取顶点缓冲区描述符 & 索引缓冲区描述符
+D3D12_VERTEX_BUFFER_VIEW D3D12InitApp::GetVbv() const {
+	D3D12_VERTEX_BUFFER_VIEW vbv;
+	vbv.BufferLocation = m_vertexBufferGPU->GetGPUVirtualAddress();
+	vbv.SizeInBytes = m_vbByteSize;
+	vbv.StrideInBytes = sizeof(Vertex);
+
+	return vbv;
+}
+
+D3D12_INDEX_BUFFER_VIEW D3D12InitApp::GetIbv() const {
+	D3D12_INDEX_BUFFER_VIEW ibv;
+	ibv.BufferLocation = m_indexBufferGPU->GetGPUVirtualAddress();
+	ibv.Format = DXGI_FORMAT_R16_UINT;
+	ibv.SizeInBytes = m_ibByteSize;
+
+	return ibv;
+}
+
+void D3D12InitApp::Update()
+{
+	ObjectConstants objConstants;
+	//构建观察矩阵
+	float x = 0.0f;
+	float y = 0.0f;
+	float z = 5.0f;
+	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
+	XMVECTOR target = XMVectorZero();
+	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	XMMATRIX v = XMMatrixLookAtLH(pos, target, up);
+
+	//构建投影矩阵
+	XMMATRIX p = XMMatrixPerspectiveFovLH(0.25f * 3.1416f, 1280.0f / 720.0f, 1.0f, 1000.0f);
+	//XMStoreFloat4x4(&proj, p);
+	//构建世界矩阵
+	//XMMATRIX w = XMLoadFloat4x4(&world);
+	//矩阵计算
+	XMMATRIX WVP_Matrix = v * p;
+	//XMMATRIX赋值给XMFLOAT4X4
+	XMStoreFloat4x4(&objConstants.worldViewProj, XMMatrixTranspose(WVP_Matrix));
+	//将数据拷贝至GPU缓存
+	m_objCB->CopyData(0, objConstants);
 }

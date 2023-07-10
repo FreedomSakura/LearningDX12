@@ -22,6 +22,8 @@
 #include "DX12Utils/d3dx12.h"
 #include "DX12Utils/MathHelper.h"
 
+#include <iostream>
+
 using namespace Microsoft::WRL;
 
 //////////////////////////////////////////////////////////////////////////

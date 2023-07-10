@@ -142,6 +142,7 @@
   <ItemGroup>
     <ClInclude Include="D3D12App.h" />
     <ClInclude Include="GameTime.h" />
+    <ClInclude Include="ModelData.h" />
     <ClInclude Include="ToolFunc.h" />
     <ClInclude Include="UploadBufferResource.h" />
   </ItemGroup>
