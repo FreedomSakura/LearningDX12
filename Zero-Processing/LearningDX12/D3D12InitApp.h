@@ -1,6 +1,8 @@
 #pragma once
 
 #include "D3D12App.h"
+#include "UploadBufferResource.h"
+#include <d3dcompiler.h>
 
 using namespace DirectX;
 

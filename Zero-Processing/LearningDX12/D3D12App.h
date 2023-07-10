@@ -6,7 +6,6 @@
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <wrl.h>
-#include <d3dcompiler.h>
 
 #include <DirectXMath.h>
 #include <DirectXPackedVector.h>
@@ -19,12 +18,13 @@
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
+#pragma comment(lib,"d3dcompiler.lib")
 
 // DX12工具类——封装了一些通用的函数
 #include "ToolFunc.h"
 #include "GameTime.h"
 #include "WndProc.h"
-#include "UploadBufferResource.h"
+
 
 // ComPtr就在这里
 using namespace Microsoft::WRL;

@@ -150,6 +150,8 @@ bool D3D12InitApp::CreateVBV() {
 	
 	// 设置顶点缓冲区
 	m_cmdList->IASetVertexBuffers(0, 1, &vbv);
+
+	return true;
 }
 
 bool D3D12InitApp::CreateIBV() {
@@ -165,6 +167,8 @@ bool D3D12InitApp::CreateIBV() {
 	ibv.SizeInBytes = m_ibByteSize;
 	//设置索引缓冲区
 	m_cmdList->IASetIndexBuffer(&ibv);
+
+	return true;
 }
 
 
@@ -194,6 +198,8 @@ bool D3D12InitApp::CreateCBV() {
 	cbvDesc.BufferLocation = address;
 	cbvDesc.SizeInBytes = objConstSize;
 	m_d3dDevice->CreateConstantBufferView(&cbvDesc, cbvHeap->GetCPUDescriptorHandleForHeapStart());
+
+	return true;
 }
 
 // 创建根签名
@@ -247,8 +253,8 @@ void D3D12InitApp::BuildRootSignature() {
 // 将顶点&索引数据复制到CPU系统内存，再使用CreateDefaultBuffer将其复制到GPU缓存中
 void D3D12InitApp::BuildGeometry() {
 	// 创建内存空间
-	ThrowIfFailed(D3DCreateBlob(m_vbByteSize, &m_vertexBufferCPU));
-	ThrowIfFailed(D3DCreateBlob(m_ibByteSize, &m_indexBufferCPU));
+	//ThrowIfFailed(D3DCreateBlob(m_vbByteSize, m_vertexBufferCPU.GetAddressOf()));
+	//ThrowIfFailed(D3DCreateBlob(m_ibByteSize, m_indexBufferCPU.GetAddressOf()));
 	// 复制到CPU系统内存
 	CopyMemory(m_vertexBufferCPU->GetBufferPointer(), vertices.data(), m_vbByteSize);
 	CopyMemory(m_indexBufferCPU->GetBufferPointer(), indices.data(), m_ibByteSize);

@@ -1,7 +1,6 @@
 ﻿// LearningDX12.cpp : 定义应用程序的入口点。
 
 #include "D3D12InitApp.h"
-#include "GameTime.h"
 
 #define MAX_LOADSTRING 100
 

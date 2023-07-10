@@ -7,7 +7,7 @@
 /// 一个通用类，用于创建上传堆和资源
 /// </summary>
 /// <typeparam name="T"></typeparam>
-template<typename T>
+template<class T>
 class UploadBufferResource
 {
 public:
@@ -22,8 +22,8 @@ private:
 	bool m_IsConstantBuffer;
 	UINT m_elementByteSize;
 	// 很可能不是这个类型！
-	const ComPtr<ID3D12Resource> m_uploadBuffer;
-	ComPtr<ID3D12Resource> m_mappedData;
+	ComPtr<ID3D12Resource> m_uploadBuffer;
+	BYTE* m_mappedData;
 };
 
 // 奇怪的函数，用来钳制常量缓冲区大小（返回256的倍数！）
@@ -34,8 +34,8 @@ inline UINT CalcConstantBufferByteSize(UINT byteSize)
 }
 
 
-template<typename T>
-UploadBufferResource<typename T>::UploadBufferResource(ComPtr<ID3D12Device> d3dDevice, UINT elementCount, bool isConstantBuffer)
+template<class T>
+UploadBufferResource<T>::UploadBufferResource(ComPtr<ID3D12Device> d3dDevice, UINT elementCount, bool isConstantBuffer)
 	: m_IsConstantBuffer(isConstantBuffer)
 {
 	m_elementByteSize = sizeof(T);//如果不是常量缓冲区，则直接计算缓存大小
@@ -55,14 +55,14 @@ UploadBufferResource<typename T>::UploadBufferResource(ComPtr<ID3D12Device> d3dD
 	);
 
 	// 返回欲更新资源的指针
-	m_uploadBuffer->Map(
+	ThrowIfFailed(m_uploadBuffer->Map(
 		0,	//子资源索引，对于缓冲区来说，他的子资源就是自己
 		nullptr,			//对整个资源进行映射
-		ThrowIfFailed(reinterpret_cast<void**>(&m_mappedData)));//返回待映射资源数据的目标内存块	
+		reinterpret_cast<void**>(&m_mappedData)));//返回待映射资源数据的目标内存块	
 }
 
-template<typename T>
-UploadBufferResource<typename T>::~UploadBufferResource()
+template<class T>
+UploadBufferResource<T>::~UploadBufferResource()
 {
 	if (m_uploadBuffer != nullptr)
 		m_uploadBuffer->Unmap(0, nullptr); //取消映射
@@ -72,14 +72,14 @@ UploadBufferResource<typename T>::~UploadBufferResource()
 }
 
 
-template<typename T>
-void UploadBufferResource<typename T>::CopyData(int elementIndex, const T& Data)
+template<class T>
+void UploadBufferResource<T>::CopyData(int elementIndex, const T& Data)
 {
 	memcpy(&m_mappedData[elementIndex * m_elementByteSize], &Data, sizeof(T));
 }
 
-template<typename T>
-ComPtr<ID3D12Resource> UploadBufferResource<typename T>::Resource() const
+template<class T>
+ComPtr<ID3D12Resource> UploadBufferResource<T>::Resource() const
 {
 	return m_uploadBuffer;
 }

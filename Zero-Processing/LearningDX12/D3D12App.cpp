@@ -1,5 +1,7 @@
 #include "D3D12App.h"
 
+
+
 bool D3D12App::Draw() {
 	return true;
 }
