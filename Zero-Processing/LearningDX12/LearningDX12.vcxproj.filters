@@ -44,12 +44,6 @@
     <ClCompile Include="ToolFunc.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="WndProc.h">
-      <Filter>头文件</Filter>
-    </ClCompile>
-    <ClCompile Include="WndProc.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="D3D12InitApp.h">
       <Filter>头文件</Filter>
     </ClCompile>

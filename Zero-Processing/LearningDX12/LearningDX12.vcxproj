@@ -153,8 +153,6 @@
     <ClCompile Include="GameTime.cpp" />
     <ClCompile Include="LearningDX12.cpp" />
     <ClCompile Include="ToolFunc.cpp" />
-    <ClCompile Include="WndProc.cpp" />
-    <ClCompile Include="WndProc.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LearningDX12.rc" />

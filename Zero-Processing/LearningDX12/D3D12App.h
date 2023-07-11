@@ -24,26 +24,41 @@
 // DX12工具类——封装了一些通用的函数
 #include "ToolFunc.h"
 #include "GameTime.h"
-#include "WndProc.h"
+//#include "WndProc.h"
 
 
 // ComPtr就在这里
 using namespace Microsoft::WRL;
+using namespace DirectX;
 
 class D3D12App
 {
 protected:
-	D3D12App() {};
+	D3D12App() {
+		assert(m_App == nullptr);
+		m_App = this;
+	};
 	virtual ~D3D12App() {};
 
 public:
+	static D3D12App* GetApp();
+
 	virtual bool Init(HINSTANCE hInstance, int nShowCmd);
 	bool InitWindow(HINSTANCE hInstance, int nShowCmd);
 	bool InitD3DPipeline();
 
+	virtual LRESULT MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 	int Run();
+protected:
 	virtual bool Draw() = 0;
 	virtual void Update() = 0;
+	virtual void OnResize();
+	// 鼠标操纵相关
+	virtual void OnMouseDown(WPARAM btnState, int x, int y);
+	virtual void OnMouseUp(WPARAM btnState, int x, int y);
+	virtual void OnMouseMove(WPARAM btnState, int x, int y);
+
 
 	// Init()里的函数
 	void CreateDevice();
@@ -63,7 +78,9 @@ public:
 
 
 protected:
-	HWND m_hwnd = 0;
+	static D3D12App* m_App;
+
+	HWND m_hwnd = nullptr;
 
 	ComPtr<IDXGIFactory4> m_dxgiFactory;
 	ComPtr<ID3D12Device> m_d3dDevice;
@@ -91,4 +108,18 @@ protected:
 	// 计时器类
 	GameTime m_gt;
 
+	// 鼠标移动相关
+	POINT m_lastMousePos;
+
+	float m_theta = 1.5f * XM_PI;
+	float m_phi = XM_PIDIV4;
+	float m_radius = 5.0f;
+
+	int m_clientWidth = 1280;
+	int m_clientHight = 720;
+
+	bool m_isAppPaused = false;
+	bool m_isMinimized = false;
+	bool m_isMaximized = false;
+	bool m_isResizing = false;
 };

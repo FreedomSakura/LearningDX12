@@ -25,7 +25,13 @@ private:
 
     virtual bool Draw() override;
 	// 更新矩阵（实际上是更新 常量缓冲区）
-	void Update();
+	virtual void Update() override;
+	virtual void OnResize() override;
+
+	virtual void OnMouseDown(WPARAM btnState, int x, int y) override;
+	virtual void OnMouseUp(WPARAM btnState, int x, int y) override;
+	virtual void OnMouseMove(WPARAM btnState, int x, int y) override;
+	
 
 	bool CreateCBV();
 	// 创建根签名
@@ -81,5 +87,7 @@ private:
 	// 流水线状态对象
 	ComPtr<ID3D12PipelineState> m_PSO = nullptr; // 暂时还不知道是什么类型的
 
+	// 矩阵
+	XMFLOAT4X4 m_proj;
 };
 

@@ -109,6 +109,7 @@ bool D3D12InitApp::Draw() {
 	///////////////////////////////////////////////////////////////
 	// 应该是在这里添加渲染代码
 	///////////////////////////////////////////////////////////////
+
 	// 设置CBV描述符堆
 	ID3D12DescriptorHeap* descriHeaps[] = { m_cbvHeap.Get() };
 	m_cmdList->SetDescriptorHeaps(_countof(descriHeaps), descriHeaps);
@@ -116,6 +117,7 @@ bool D3D12InitApp::Draw() {
 	m_cmdList->SetGraphicsRootSignature(m_rootSignature.Get());
 	// 设置顶点缓冲区
 	m_cmdList->IASetVertexBuffers(0, 1, &GetVbv());
+
 	m_cmdList->IASetIndexBuffer(&GetIbv());
 	// 将图元拓扑传入流水线
 	m_cmdList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -407,9 +409,12 @@ void D3D12InitApp::Update()
 {
 	ObjectConstants objConstants;
 	//构建观察矩阵
-	float x = 0.0f;
-	float y = 0.0f;
-	float z = 5.0f;
+	float x = m_radius * sinf(m_phi) * cosf(m_theta);
+	float y = m_radius * cosf(m_phi);
+	float z = m_radius * sinf(m_phi) * sinf(m_theta);
+	float r = 5.0f;
+	//x *= sinf(m_gt.TotalTime());
+	//z = sqrt(r * r - x * x);
 	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
 	XMVECTOR target = XMVectorZero();
 	
@@ -428,4 +433,51 @@ void D3D12InitApp::Update()
 	XMStoreFloat4x4(&objConstants.worldViewProj, XMMatrixTranspose(WVP_Matrix));
 	//将数据拷贝至GPU缓存
 	m_objCB->CopyData(0, objConstants);
+}
+
+// 鼠标操纵相关
+void D3D12InitApp::OnMouseDown(WPARAM btnState, int x, int y) {
+	m_lastMousePos.x = x;	//按下的时候记录坐标x分量
+	m_lastMousePos.y = y;	//按下的时候记录坐标y分量
+
+	SetCapture(m_hwnd);	//在属于当前线程的指定窗口里，设置鼠标捕获
+}
+
+void D3D12InitApp::OnMouseUp(WPARAM btnState, int x, int y) {
+	ReleaseCapture();
+}
+
+void D3D12InitApp::OnMouseMove(WPARAM btnState, int x, int y) {
+	if ((btnState & MK_LBUTTON) != 0)//如果在左键按下状态
+	{
+		//将鼠标的移动距离换算成弧度，0.25为调节阈值
+		float dx = XMConvertToRadians(static_cast<float>(m_lastMousePos.x - x) * 0.25f);
+		float dy = XMConvertToRadians(static_cast<float>(m_lastMousePos.y - y) * 0.25f);
+		//计算鼠标没有松开前的累计弧度
+		m_theta += dx;
+		m_phi += dy;
+		//限制角度phi的范围在（0.1， Pi-0.1）
+		m_theta = MathHelper::Clamp(m_theta, 0.1f, 3.1416f - 0.1f);
+	}
+	else if ((btnState & MK_RBUTTON) != 0)//如果在右键按下状态
+	{
+		//将鼠标的移动距离换算成缩放大小，0.005为调节阈值
+		float dx = 0.005f * static_cast<float>(x - m_lastMousePos.x);
+		float dy = 0.005f * static_cast<float>(y - m_lastMousePos.y);
+		//根据鼠标输入更新摄像机可视范围半径
+		m_radius += dx - dy;
+		//限制可视范围半径
+		m_radius = MathHelper::Clamp(m_radius, 1.0f, 20.0f);
+	}
+	//将当前鼠标坐标赋值给“上一次鼠标坐标”，为下一次鼠标操作提供先前值
+	m_lastMousePos.x = x;
+	m_lastMousePos.y = y;
+}
+
+void D3D12InitApp::OnResize() {
+	D3D12App::OnResize();
+
+	// 构建投影矩阵
+	XMMATRIX p = XMMatrixPerspectiveFovLH(0.25f * 3.1416f, static_cast<float>(m_clientWidth) / m_clientHight, 1.0f, 1000.0f);
+	XMStoreFloat4x4(&m_proj, p);
 }

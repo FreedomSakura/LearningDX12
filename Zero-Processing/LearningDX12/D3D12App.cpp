@@ -1,10 +1,15 @@
 #include "D3D12App.h"
 
 
+LRESULT CALLBACK MainWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	return D3D12App::GetApp()->MsgProc(hWnd, message, wParam, lParam);
+}
 
-//bool D3D12App::Draw() {
-//	return true;
-//}
+D3D12App* D3D12App::m_App = nullptr;
+D3D12App* D3D12App::GetApp()
+{
+	return m_App;
+}
 
 // win32相关
 bool D3D12App::Init(HINSTANCE hInstance, int nShowCmd) {
@@ -12,6 +17,8 @@ bool D3D12App::Init(HINSTANCE hInstance, int nShowCmd) {
 		return false;
 	if (!InitD3DPipeline())
 		return false;
+
+	OnResize();
 
 	return true;
 }
@@ -400,4 +407,150 @@ int D3D12App::Run()
 	}
 
 	return (int)msg.wParam;
+}
+
+LRESULT D3D12App::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	//消息处理
+	switch (msg)
+	{
+		//鼠标按键按下时的触发（左中右）
+	case WM_LBUTTONDOWN:
+	case WM_MBUTTONDOWN:
+	case WM_RBUTTONDOWN:
+		//wParam为输入的虚拟键代码，lParam为系统反馈的光标信息
+		OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		return 0;
+		//鼠标按键抬起时的触发（左中右）
+	case WM_LBUTTONUP:
+	case WM_MBUTTONUP:
+	case WM_RBUTTONUP:
+		OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		return 0;
+		//鼠标移动的触发
+	case WM_MOUSEMOVE:
+		OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		return 0;
+		//当窗口被销毁时，终止消息循环
+	case WM_DESTROY:
+		PostQuitMessage(0);	//终止消息循环，并发出WM_QUIT消息
+		return 0;
+	case WM_SIZE:
+		m_clientWidth = LOWORD(lParam);
+		m_clientHight = HIWORD(lParam);
+		if (m_d3dDevice)
+		{
+			//如果最小化,则暂停游戏，调整最小化和最大化状态
+			if (wParam == SIZE_MINIMIZED)
+			{
+				m_isAppPaused = true;
+				m_isMinimized = true;
+				m_isMaximized = false;
+			}
+			else if (wParam == SIZE_MAXIMIZED)
+			{
+				m_isAppPaused = false;
+				m_isMinimized = false;
+				m_isMaximized = true;
+				OnResize();
+			}
+			else if (wParam == SIZE_RESTORED)
+			{
+				if (m_isMinimized)
+				{
+					m_isAppPaused = false;
+					m_isMinimized = false;
+					OnResize();
+				}
+
+				else if (m_isMaximized)
+				{
+					m_isAppPaused = false;
+					m_isMaximized = false;
+					OnResize();
+				}
+
+				else if (m_isResizing)
+				{
+
+				}
+				else
+				{
+					OnResize();
+				}
+			}
+		}
+
+		return 0;
+	default:
+		break;
+	}
+	//将上面没有处理的消息转发给默认的窗口过程
+	return DefWindowProc(hwnd, msg, wParam, lParam);
+}
+
+// 鼠标操纵相关
+void D3D12App::OnMouseDown(WPARAM btnState, int x, int y) {
+	m_lastMousePos.x = x;	//按下的时候记录坐标x分量
+	m_lastMousePos.y = y;	//按下的时候记录坐标y分量
+
+	SetCapture(m_hwnd);	//在属于当前线程的指定窗口里，设置鼠标捕获
+}
+
+void D3D12App::OnMouseUp(WPARAM btnState, int x, int y) {
+	ReleaseCapture();
+}
+
+void D3D12App::OnMouseMove(WPARAM btnState, int x, int y) {
+	if ((btnState & MK_LBUTTON) != 0)//如果在左键按下状态
+	{
+		//将鼠标的移动距离换算成弧度，0.25为调节阈值
+		float dx = XMConvertToRadians(static_cast<float>(m_lastMousePos.x - x) * 0.25f);
+		float dy = XMConvertToRadians(static_cast<float>(m_lastMousePos.y - y) * 0.25f);
+		//计算鼠标没有松开前的累计弧度
+		m_theta += dx;
+		m_phi += dy;
+		//限制角度phi的范围在（0.1， Pi-0.1）
+		m_theta = MathHelper::Clamp(m_theta, 0.1f, 3.1416f - 0.1f);
+	}
+	else if ((btnState & MK_RBUTTON) != 0)//如果在右键按下状态
+	{
+		//将鼠标的移动距离换算成缩放大小，0.005为调节阈值
+		float dx = 0.005f * static_cast<float>(x - m_lastMousePos.x);
+		float dy = 0.005f * static_cast<float>(y - m_lastMousePos.y);
+		//根据鼠标输入更新摄像机可视范围半径
+		m_radius += dx - dy;
+		//限制可视范围半径
+		m_radius = MathHelper::Clamp(m_radius, 1.0f, 20.0f);
+	}
+	//将当前鼠标坐标赋值给“上一次鼠标坐标”，为下一次鼠标操作提供先前值
+	m_lastMousePos.x = x;
+	m_lastMousePos.y = y;
+}
+
+void D3D12App::OnResize() {
+	assert(m_d3dDevice);
+	assert(m_swapChain);
+	assert(m_cmdAllocator);
+	FlushCmdQueue();//改变资源前先同步
+
+	//ThrowIfFailed(m_cmdList->Reset(m_cmdAllocator.Get(), nullptr));
+
+	//释放之前的资源，为我们重新创建做好准备
+	for (int i = 0; i < 2; i++)
+		m_swapChainBuffer[i].Reset();
+	m_depthStencilBuffer.Reset();
+	//重新调整后台缓冲区资源的大小
+	ThrowIfFailed(m_swapChain->ResizeBuffers(
+		2,
+		m_clientWidth,
+		m_clientHight,
+		DXGI_FORMAT_R8G8B8A8_UNORM,
+		DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING));
+	//后台缓冲区索引置零
+	m_currentBackBuffer = 0;
+
+	CreateRTV();
+	CreateDSV();
+	CreateViewPortAndScissorRect();
 }
