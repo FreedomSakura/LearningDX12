@@ -69,7 +69,7 @@ class ToolFunc
 {
 public:
 	// 创建上传堆 & 默认堆
-	static ComPtr<ID3D12Resource> CreateDefaultBuffer(ComPtr<ID3D12Device> d3dDevice, ComPtr<ID3D12GraphicsCommandList> cmdList, UINT64 byteSize, const void* initData, ComPtr<ID3D12Resource>& uploadBuffer);
+	static ComPtr<ID3D12Resource> CreateDefaultBuffer(ID3D12Device* d3dDevice, ID3D12GraphicsCommandList* cmdList, UINT64 byteSize, const void* initData, ComPtr<ID3D12Resource>& uploadBuffer);
 	// 编译着色器
 	static ComPtr<ID3DBlob> CompileShader(const std::wstring& fileName, const D3D_SHADER_MACRO* defines, const std::string& enteryPoint, const std::string& target);
 

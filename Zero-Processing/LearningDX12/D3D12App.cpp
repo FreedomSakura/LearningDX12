@@ -8,8 +8,10 @@
 
 // win32相关
 bool D3D12App::Init(HINSTANCE hInstance, int nShowCmd) {
-	InitWindow(hInstance, nShowCmd);
-	InitD3DPipeline();
+	if (!InitWindow(hInstance, nShowCmd))
+		return false;
+	if (!InitD3DPipeline())
+		return false;
 
 	return true;
 }
@@ -58,7 +60,7 @@ bool D3D12App::InitWindow(HINSTANCE hInstance, int nShowCmd) {
 	UpdateWindow(m_hwnd);
 
 	// 顺带开一下控制台
-	AllocConsole();
+	//AllocConsole();
 
 	return true;
 }
@@ -381,12 +383,12 @@ int D3D12App::Run()
 		// 否则就继续执行渲染 & 游戏逻辑
 		else
 		{
-			Draw();
-
 			m_gt.Tick();	//计算每两帧间隔时间
+
 			if (!m_gt.IsStoped())//如果不是暂停状态，我们才运行游戏
 			{
 				CalculateFrameState();
+				Update();
 				Draw();
 			}
 			//如果是暂停状态，则休眠100秒
