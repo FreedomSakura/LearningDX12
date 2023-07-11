@@ -1,12 +1,12 @@
 #include "D3D12InitApp.h"
 
-//¶¨Òå¶¥µã½á¹¹Ìå
+//ï¿½ï¿½ï¿½å¶¥ï¿½ï¿½á¹¹ï¿½ï¿½
 struct Vertex
 {
 	XMFLOAT3 Pos;
 	XMFLOAT4 Color;
 };
-//ÊµÀý»¯¶¥µã½á¹¹Ìå²¢Ìî³ä
+//Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á¹¹ï¿½å²¢ï¿½ï¿½ï¿½
 std::array<Vertex, 8> vertices =
 {
 	Vertex({ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(Colors::White) }),
@@ -25,48 +25,48 @@ std::array<std::uint16_t, 36> indices =
 	0, 1, 2,
 	0, 2, 3,
 
-	//ºó
+	//ï¿½ï¿½
 	4, 6, 5,
 	4, 7, 6,
 
-	//×ó
+	//ï¿½ï¿½
 	4, 5, 1,
 	4, 1, 0,
 
-	//ÓÒ
+	//ï¿½ï¿½
 	3, 2, 6,
 	3, 6, 7,
 
-	//ÉÏ
+	//ï¿½ï¿½
 	1, 5, 6,
 	1, 6, 2,
 
-	//ÏÂ
+	//ï¿½ï¿½
 	4, 0, 3,
 	4, 3, 7
 };
 
-//µ¥¸öÎïÌåµÄ³£Á¿Êý¾Ý
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 struct ObjectConstants
 {
-	//³õÊ¼»¯ÎïÌå¿Õ¼ä±ä»»µ½²Ã¼ô¿Õ¼ä¾ØÕó£¬Identity4x4()ÊÇµ¥Î»¾ØÕó£¬ÐèÒª°üº¬MathHelperÍ·ÎÄ¼þ
+	//ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½ä»»ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½Õ¼ï¿½ï¿½ï¿½ï¿½Identity4x4()ï¿½Çµï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½MathHelperÍ·ï¿½Ä¼ï¿½
 	XMFLOAT4X4 worldViewProj = MathHelper::Identity4x4();
 };
 
-// »æÖÆ£¨µ÷ÓÃÒ»´Î¾ÍÊÇÒ»Ö¡£¡£©
-//¹¦ÄÜ£º½«¸÷ÖÖ×ÊÔ´ÉèÖÃµ½äÖÈ¾Á÷Ë®ÏßÉÏ£¬²¢×îÖÕ·¢³ö»æÖÆÃüÁî
+// ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Î¾ï¿½ï¿½ï¿½Ò»Ö¡ï¿½ï¿½ï¿½ï¿½
+//ï¿½ï¿½ï¿½Ü£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½È¾ï¿½ï¿½Ë®ï¿½ï¿½ï¿½Ï£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 bool D3D12InitApp::Draw() {
-	//1¡¢ÖØÖÃÃüÁîºÍÁÐ±í£¬¸´ÓÃÏà¹ØÄÚ´æ
-	ThrowIfFailed(m_cmdAllocator->Reset()); // ÖØ¸´Ê¹ÓÃ¼ÇÂ¼ÃüÁîµÄÏà¹ØÄÚ´æ
-	ThrowIfFailed(m_cmdList->Reset(m_cmdAllocator.Get(), m_PSO.Get())); // ¸´ÓÃÃüÁîÁÐ±í¼°ÆäÄÚ´æ
+	//1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½
+	ThrowIfFailed(m_cmdAllocator->Reset()); // ï¿½Ø¸ï¿½Ê¹ï¿½Ã¼ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½
+	ThrowIfFailed(m_cmdList->Reset(m_cmdAllocator.Get(), m_PSO.Get())); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½
 
-	//2¡¢½«ºóÌ¨»º³å×ÊÔ´´Ó³ÊÏÖ×´Ì¬×ª»»µ½äÖÈ¾Ä¿±ê×´Ì¬£¨¼´×¼±¸½ÓÊÕÍ¼ÏñäÖÈ¾£©
+	//2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½Ó³ï¿½ï¿½ï¿½×´Ì¬×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¾Ä¿ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½È¾ï¿½ï¿½
 	UINT& ref_mCurrentBackBuffer = m_currentBackBuffer;
-	// ×ª»»×ÊÔ´ÎªºóÌ¨»º³åÇø×ÊÔ´
+	// ×ªï¿½ï¿½ï¿½ï¿½Ô´Îªï¿½ï¿½Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´
 	CD3DX12_RESOURCE_BARRIER resBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
 		m_swapChainBuffer[ref_mCurrentBackBuffer].Get(),
-		D3D12_RESOURCE_STATE_PRESENT, // µ±Ç°×´Ì¬£ºÇ°Ì¨»º³åÇø£¬³ÊÏÖ×´Ì¬
-		D3D12_RESOURCE_STATE_RENDER_TARGET // µ±Ç°×´Ì¬£ººóÌ¨»º³åÇø£¬äÖÈ¾Ä¿±ê×´Ì¬
+		D3D12_RESOURCE_STATE_PRESENT, // ï¿½ï¿½Ç°×´Ì¬ï¿½ï¿½Ç°Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬
+		D3D12_RESOURCE_STATE_RENDER_TARGET // ï¿½ï¿½Ç°×´Ì¬ï¿½ï¿½ï¿½ï¿½Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¾Ä¿ï¿½ï¿½×´Ì¬
 	);
 
 	m_cmdList->ResourceBarrier(
@@ -74,68 +74,68 @@ bool D3D12InitApp::Draw() {
 		&resBarrier
 	);
 
-	//3¡¢ÉèÖÃÊÓ¿ÚºÍ²Ã¼ô¾ØÐÎ
+	//3ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿ÚºÍ²Ã¼ï¿½ï¿½ï¿½ï¿½ï¿½
 	m_cmdList->RSSetViewports(1, &m_viewPort);
 	m_cmdList->RSSetScissorRects(1, &m_scissorRect);
 
-	//4¡¢Çå³ýºóÌ¨»º³åÇø & Éî¶È»º³åÇø
+	//4ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ & ï¿½ï¿½È»ï¿½ï¿½ï¿½ï¿½ï¿½
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(),
 		ref_mCurrentBackBuffer,
 		m_rtvDescriptorSize);
-	// Çå³ýRT±³¾°É«Îªµ­À¶É«£¬²¢ÇÒ²»ÉèÖÃ²Ã¼ô¾ØÐÎ
+	// ï¿½ï¿½ï¿½RTï¿½ï¿½ï¿½ï¿½É«Îªï¿½ï¿½ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½Ã²Ã¼ï¿½ï¿½ï¿½ï¿½ï¿½
 	m_cmdList->ClearRenderTargetView(rtvHandle, DirectX::Colors::AliceBlue, 0, nullptr);
-	// Çå³ýÉî¶È»º³å
+	// ï¿½ï¿½ï¿½ï¿½ï¿½È»ï¿½ï¿½ï¿½
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
 	m_cmdList->ClearDepthStencilView(
-		dsvHandle, // DSVÃèÊö·û¾ä±ú
+		dsvHandle, // DSVï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
-		1.0f, // Ä¬ÈÏÉî¶ÈÖµ
-		0,    // Ä¬ÈÏÄ£°åÖµ
-		0,    // ²Ã¼ô¾ØÐÎÊýÁ¿
-		nullptr // ²Ã¼ô¾ØÐÎÖ¸Õë
+		1.0f, // Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½Öµ
+		0,    // Ä¬ï¿½ï¿½Ä£ï¿½ï¿½Öµ
+		0,    // ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		nullptr // ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
 	);
 
 
 
-	//5¡¢Ö¸¶¨½«ÒªäÖÈ¾µÄ»º³åÇø£¨Ö¸¶¨RTV & DSV£©
+	//5ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½È¾ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½RTV & DSVï¿½ï¿½
 	m_cmdList->OMSetRenderTargets(
-		1,    // ´ý°ó¶¨µÄRTVÊýÁ¿
+		1,    // ï¿½ï¿½ï¿½ó¶¨µï¿½RTVï¿½ï¿½ï¿½ï¿½
 		&rtvHandle,
-		true, // RTV¶ÔÏóÔÚ¶ÑÄÚ´æÖÐÊÇÁ¬Ðø´æ·ÅµÄ
+		true, // RTVï¿½ï¿½ï¿½ï¿½ï¿½Ú¶ï¿½ï¿½Ú´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åµï¿½
 		&dsvHandle
 	);
 
 
 	///////////////////////////////////////////////////////////////
-	// Ó¦¸ÃÊÇÔÚÕâÀïÌí¼ÓäÖÈ¾´úÂë
+	// Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¾ï¿½ï¿½ï¿½ï¿½
 	///////////////////////////////////////////////////////////////
 
-	// ÉèÖÃCBVÃèÊö·û¶Ñ
+	// ï¿½ï¿½ï¿½ï¿½CBVï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	ID3D12DescriptorHeap* descriHeaps[] = { m_cbvHeap.Get() };
 	m_cmdList->SetDescriptorHeaps(_countof(descriHeaps), descriHeaps);
-	// ÉèÖÃ¸ùÇ©Ãû
+	// ï¿½ï¿½ï¿½Ã¸ï¿½Ç©ï¿½ï¿½
 	m_cmdList->SetGraphicsRootSignature(m_rootSignature.Get());
-	// ÉèÖÃ¶¥µã»º³åÇø
+	// ï¿½ï¿½ï¿½Ã¶ï¿½ï¿½ã»ºï¿½ï¿½ï¿½ï¿½
 	m_cmdList->IASetVertexBuffers(0, 1, &GetVbv());
 
 	m_cmdList->IASetIndexBuffer(&GetIbv());
-	// ½«Í¼ÔªÍØÆË´«ÈëÁ÷Ë®Ïß
+	// ï¿½ï¿½Í¼Ôªï¿½ï¿½ï¿½Ë´ï¿½ï¿½ï¿½ï¿½ï¿½Ë®ï¿½ï¿½
 	m_cmdList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	// ÉèÖÃ¸ùÃèÊö·û±í
+	// ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	m_cmdList->SetGraphicsRootDescriptorTable(
-		0, // ¸ù²ÎÊýµÄÆðÊ¼Ë÷Òý
+		0, // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½
 		m_cbvHeap->GetGPUDescriptorHandleForHeapStart()
 	);
 
 	Update();
 
-	//»æÖÆ¶¥µã£¡£¡£¡£¡£¡
+	//ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ã£¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	m_cmdList->DrawIndexedInstanced(
-		sizeof(indices), // Ã¿¸öÊµÀýÒª»æÖÆµÄË÷ÒýÊý
-		1, // ÊµÀý»¯¸öÊý
-		0, // ÆðÊ¼Ë÷ÒýÎ»ÖÃ
-		0, // ×ÓÎïÌåÆðÊ¼Ë÷ÒýÔÚÈ«¾ÖË÷ÒýÖÐµÄÎ»ÖÃ
-		0  // ÊµÀý»¯µÄ¸ß¼¶¼¼Êõ£¬ÔÝÊ±ÉèÎª0 
+		sizeof(indices), // Ã¿ï¿½ï¿½Êµï¿½ï¿½Òªï¿½ï¿½ï¿½Æµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		1, // Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		0, // ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
+		0, // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½Î»ï¿½ï¿½
+		0  // Êµï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ß¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Îª0 
 	);
 	//m_cmdList->DrawInstanced(8, 1, 0, 0);
 
@@ -144,11 +144,11 @@ bool D3D12InitApp::Draw() {
 
 
 
-	//6¡¢äÖÈ¾Íê³É£¬½«ºóÌ¨»º³åÇøµÄ×´Ì¬¸ÄÎª³ÊÏÖ×´Ì¬£¬½«ÆäÍÆÏòÇ°Ì¨»º³åÇøÏÔÊ¾
+	//6ï¿½ï¿½ï¿½ï¿½È¾ï¿½ï¿½É£ï¿½ï¿½ï¿½ï¿½ï¿½Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾
 	resBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
 		m_swapChainBuffer[ref_mCurrentBackBuffer].Get(),
-		D3D12_RESOURCE_STATE_RENDER_TARGET, // µ±Ç°×´Ì¬£ººóÌ¨»º³åÇø£¬äÖÈ¾Ä¿±ê×´Ì¬
-		D3D12_RESOURCE_STATE_PRESENT // µ±Ç°×´Ì¬£ºÇ°Ì¨»º³åÇø£¬³ÊÏÖ×´Ì¬
+		D3D12_RESOURCE_STATE_RENDER_TARGET, // ï¿½ï¿½Ç°×´Ì¬ï¿½ï¿½ï¿½ï¿½Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¾Ä¿ï¿½ï¿½×´Ì¬
+		D3D12_RESOURCE_STATE_PRESENT // ï¿½ï¿½Ç°×´Ì¬ï¿½ï¿½Ç°Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬
 	);
 
 	m_cmdList->ResourceBarrier(
@@ -156,20 +156,20 @@ bool D3D12InitApp::Draw() {
 		&resBarrier
 	);
 
-	// 7¡¢8Á½²½ÆäÊµËãÊÇÒ»²½£¡¹Ø±ÕCommand ListºóÓ¦µ±½«ÆäÖÐÃüÁî´«µ½Command QueueÖÐ£¡
-	//7¡¢Íê³ÉÃüÁîµÄ¼ÇÂ¼¹Ø±ÕÃüÁîÁÐ±í
+	// 7ï¿½ï¿½8ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Ø±ï¿½Command Listï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½î´«ï¿½ï¿½Command Queueï¿½Ð£ï¿½
+	//7ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½Â¼ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½
 	ThrowIfFailed(m_cmdList->Close());
 
-	//8¡¢µÈCPU½«ÃüÁî¶¼×¼±¸ºÃ£¬½«´ýÖ´ÐÐµÄÃüÁîÁÐ±í¼ÓÈëGPUµÄÃüÁî¶ÓÁÐ
-	ID3D12CommandList* commandLists[] = { m_cmdList.Get() }; // ÉùÃ÷²¢¶¨ÒåÃüÁîÁÐ±íÊý×é
-	m_cmdQueue->ExecuteCommandLists(_countof(commandLists), commandLists); // ½«ÃüÁî´ÓÃüÁîÁÐ±í´«ÖÁÃüÁî¶ÓÁÐ
+	//8ï¿½ï¿½ï¿½ï¿½CPUï¿½ï¿½ï¿½ï¿½ï¿½î¶¼×¼ï¿½ï¿½ï¿½Ã£ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½GPUï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	ID3D12CommandList* commandLists[] = { m_cmdList.Get() }; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½
+	m_cmdQueue->ExecuteCommandLists(_countof(commandLists), commandLists); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-	//9¡¢½»»»Ç°ºóÌ¨»º³åÇøË÷Òý£¨0±ä1£¬1±ä0£©
-	//ThrowIfFailed(m_swapChain->Present(0, 0)); //-> µÚ¶þ¸ö²ÎÊýÊÇFlag£¬ÎÒÑ¡Ôñ´ò¿ª´¹Ö±Í¬²½£¬ËùÒÔÓÐÏÂÃæÄÇÐ©´úÂë
+	//9ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0ï¿½ï¿½1ï¿½ï¿½1ï¿½ï¿½0ï¿½ï¿½
+	//ThrowIfFailed(m_swapChain->Present(0, 0)); //-> ï¿½Ú¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Flagï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ò¿ª´ï¿½Ö±Í¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð©ï¿½ï¿½ï¿½ï¿½
 	ThrowIfFailed(m_swapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING));
 	ref_mCurrentBackBuffer = (ref_mCurrentBackBuffer + 1) % 2;
 
-	//10¡¢ÉèÖÃÎ§À¸Öµ£¬ÃüÖÐÎ§À¸¾ÍË¢ÐÂÃüÁî¶ÓÁÐ£¬Ê¹µÃCPUºÍGPUÍ¬²½
+	//10ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î§ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î§ï¿½ï¿½ï¿½ï¿½Ë¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð£ï¿½Ê¹ï¿½ï¿½CPUï¿½ï¿½GPUÍ¬ï¿½ï¿½
 	FlushCmdQueue();
 
 	return true;
@@ -177,10 +177,10 @@ bool D3D12InitApp::Draw() {
 
 
 
-// ´´½¨³£Á¿ÃèÊö·û
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 bool D3D12InitApp::CreateCBV() {
 	UINT objConstSize = CalcConstantBufferByteSize(sizeof(ObjectConstants));
-	// ´´½¨CBV¶Ñ
+	// ï¿½ï¿½ï¿½ï¿½CBVï¿½ï¿½
 	D3D12_DESCRIPTOR_HEAP_DESC cbHeapDesc;
 	cbHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	cbHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
@@ -188,16 +188,16 @@ bool D3D12InitApp::CreateCBV() {
 	cbHeapDesc.NodeMask = 0;
 	ThrowIfFailed(m_d3dDevice->CreateDescriptorHeap(&cbHeapDesc, IID_PPV_ARGS(&m_cbvHeap)));
 
-	// ¶¨Òå²¢»ñµÃÎïÌåµÄ³£Á¿»º³åÇø£¬È»ºóµÃµ½ÆäÊ×µØÖ·
-	// elementCountÎª1£¨1¸ö×ÓÎïÌå³£Á¿»º³åÔªËØ£©£¬isConstantBufferÎªture£¨ÊÇ³£Á¿»º³åÇø£©
+	// ï¿½ï¿½ï¿½å²¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È»ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½×µï¿½Ö·
+	// elementCountÎª1ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½å³£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ôªï¿½Ø£ï¿½ï¿½ï¿½isConstantBufferÎªtureï¿½ï¿½ï¿½Ç³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	m_objCB = std::make_unique<UploadBufferResource<ObjectConstants>>(m_d3dDevice.Get(), 1, true);
-	// »ñµÃ³£Á¿»º³åÇøÊ×µØÖ·
+	// ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×µï¿½Ö·
 	D3D12_GPU_VIRTUAL_ADDRESS address;
 	address = m_objCB->Resource()->GetGPUVirtualAddress();
-	// Í¨¹ý³£Á¿»º³åÇøÔªËØÆ«ÒÆÖµ¼ÆËã×îÖÕµÄÔªËØµØÖ·
-	int cbElementIndex = 0;	//³£Á¿»º³åÇøÔªËØÏÂ±ê
+	// Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ôªï¿½ï¿½Æ«ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õµï¿½Ôªï¿½Øµï¿½Ö·
+	int cbElementIndex = 0;	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ôªï¿½ï¿½ï¿½Â±ï¿½
 	address += cbElementIndex * objConstSize;
-	// ´´½¨CBVÃèÊö·û
+	// ï¿½ï¿½ï¿½ï¿½CBVï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
 	cbvDesc.BufferLocation = address;
 	cbvDesc.SizeInBytes = objConstSize;
@@ -206,30 +206,30 @@ bool D3D12InitApp::CreateCBV() {
 	return true;
 }
 
-// ´´½¨¸ùÇ©Ãû
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç©ï¿½ï¿½
 void D3D12InitApp::BuildRootSignature() {
-	// ¸ù²ÎÊý¿ÉÒÔÊÇÃèÊö·û±í¡¢¸ùÃèÊö·û¡¢¸ù³£Á¿
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	CD3DX12_ROOT_PARAMETER slotRootParameter[1];
-	// ´´½¨ÓÉµ¥¸öCBVËù×é³ÉµÄÃèÊö·û±í
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Éµï¿½ï¿½ï¿½CBVï¿½ï¿½ï¿½ï¿½Éµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	CD3DX12_DESCRIPTOR_RANGE cbvTable;
 	cbvTable.Init(
-		D3D12_DESCRIPTOR_RANGE_TYPE_CBV, // ÃèÊö·ûÀàÐÍ
-		1,// ÃèÊö·ûÊýÁ¿
-		0 // ÃèÊö·ûËù°ó¶¨µÄ¼Ä´æÆ÷²ÛºÅ£¨ÓÐµãÏñTEXTURE0ÕâÑù£¿£©
+		D3D12_DESCRIPTOR_RANGE_TYPE_CBV, // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		1,// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		0 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ó¶¨µÄ¼Ä´ï¿½ï¿½ï¿½ï¿½ÛºÅ£ï¿½ï¿½Ðµï¿½ï¿½ï¿½TEXTURE0ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	);
 
 	slotRootParameter[0].InitAsDescriptorTable(1, &cbvTable);
 
-	// ¸ùÇ©ÃûÓÉÒ»×é¸ù²ÎÊý¹¹³É
+	// ï¿½ï¿½Ç©ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	CD3DX12_ROOT_SIGNATURE_DESC rootSig(
-		1, // ¸ù²ÎÊýÊýÁ¿
-		slotRootParameter, // ¸ù²ÎÊýÖ¸Õë
+		1, // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		slotRootParameter, // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
 		0,
 		nullptr,
 		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
 	);
 
-	// ÓÃµ¥¸ö¼Ä´æÆ÷²ÛÀ´´´½¨Ò»¸ö¸ùÇ©Ãû£¬¸Ã²ÛÎ»Ö¸ÏòÒ»¸öº¬ÓÐµ¥¸ö³£Á¿»º³åÇøµÄÃèÊö·ûÇøÓò
+	// ï¿½Ãµï¿½ï¿½ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ç©ï¿½ï¿½ï¿½ï¿½ï¿½Ã²ï¿½Î»Ö¸ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	ComPtr<ID3DBlob> serializedRootSig = nullptr;
 	ComPtr<ID3DBlob> errorBlob = nullptr;
 	HRESULT hr = D3D12SerializeRootSignature(
@@ -255,7 +255,7 @@ void D3D12InitApp::BuildRootSignature() {
 	);
 }
 
-// ½«¶¥µã&Ë÷ÒýÊý¾Ý¸´ÖÆµ½CPUÏµÍ³ÄÚ´æ£¬ÔÙÊ¹ÓÃCreateDefaultBuffer½«Æä¸´ÖÆµ½GPU»º´æÖÐ
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½&ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¸ï¿½ï¿½Æµï¿½CPUÏµÍ³ï¿½Ú´æ£¬ï¿½ï¿½Ê¹ï¿½ï¿½CreateDefaultBufferï¿½ï¿½ï¿½ä¸´ï¿½Æµï¿½GPUï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void D3D12InitApp::BuildGeometry() {
 	std::array<Vertex, 8> vertices =
 	{
@@ -301,21 +301,21 @@ void D3D12InitApp::BuildGeometry() {
 	//m_ibByteSize = sizeof(indices);
 	m_vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
 	m_ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
-	// ´´½¨ÄÚ´æ¿Õ¼ä
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½Õ¼ï¿½
 	ThrowIfFailed(D3DCreateBlob(m_vbByteSize, m_vertexBufferCPU.GetAddressOf()));
 	ThrowIfFailed(D3DCreateBlob(m_ibByteSize, m_indexBufferCPU.GetAddressOf()));
 	//ThrowIfFailed(D3DCreateBlob(m_vbByteSize, &m_vertexBufferCPU));
 	//ThrowIfFailed(D3DCreateBlob(m_ibByteSize, &m_indexBufferCPU));
-	// ¸´ÖÆµ½CPUÏµÍ³ÄÚ´æ
+	// ï¿½ï¿½ï¿½Æµï¿½CPUÏµÍ³ï¿½Ú´ï¿½
 	CopyMemory(m_vertexBufferCPU->GetBufferPointer(), vertices.data(), m_vbByteSize);
 	CopyMemory(m_indexBufferCPU->GetBufferPointer(), indices.data(), m_ibByteSize);
-	// ¿½±´Êý¾Ýµ½GPU»º´æÖÐ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ýµï¿½GPUï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	m_vertexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), m_vbByteSize, vertices.data(), m_vertexBufferUploader);
 	m_indexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), m_ibByteSize, indices.data(), m_indexBufferUploader);
 }
 
-// ¹¹½¨PSO£¨PipeLineStateObject£©
-// ½«Ö®Ç°¶¨ÒåµÄ¸÷ÖÖ¶«Î÷°ó¶¨µ½äÖÈ¾Á÷Ë®ÏßÉÏ£¡
+// ï¿½ï¿½ï¿½ï¿½PSOï¿½ï¿½PipeLineStateObjectï¿½ï¿½
+// ï¿½ï¿½Ö®Ç°ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½ó¶¨µï¿½ï¿½ï¿½È¾ï¿½ï¿½Ë®ï¿½ï¿½ï¿½Ï£ï¿½
 void D3D12InitApp::BuildPSO() {
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
@@ -329,13 +329,13 @@ void D3D12InitApp::BuildPSO() {
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	psoDesc.SampleMask = UINT_MAX;	//0xffffffff,È«²¿²ÉÑù£¬Ã»ÓÐÕÚÕÖ
+	psoDesc.SampleMask = UINT_MAX;	//0xffffffff,È«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	psoDesc.NumRenderTargets = 1;
-	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;	//¹éÒ»»¯µÄÎÞ·ûºÅÕûÐÍ
+	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;	//ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Þ·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	psoDesc.SampleDesc.Count = 1;	//²»Ê¹ÓÃ4XMSAA
-	psoDesc.SampleDesc.Quality = 0;	////²»Ê¹ÓÃ4XMSAA
+	psoDesc.SampleDesc.Count = 1;	//ï¿½ï¿½Ê¹ï¿½ï¿½4XMSAA
+	psoDesc.SampleDesc.Quality = 0;	////ï¿½ï¿½Ê¹ï¿½ï¿½4XMSAA
 
 	
 	ThrowIfFailed(m_d3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_PSO)));
@@ -344,12 +344,12 @@ void D3D12InitApp::BuildPSO() {
 void D3D12InitApp::BuildByteCodeAndInputLayout() {
 
 
-	// ½«.hlslÎÄ¼þ±àÒëÎª×Ö½ÚÂë
+	// ï¿½ï¿½.hlslï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½Ö½ï¿½ï¿½ï¿½
 	HRESULT hr = S_OK;
 	m_vsBytecode = ToolFunc::CompileShader(L"Shaders\\color.hlsl", nullptr, "VS", "vs_5_0");
 	m_psBytecode = ToolFunc::CompileShader(L"Shaders\\color.hlsl", nullptr, "PS", "ps_5_0");
 
-	// ÊäÈë²¼¾Ö
+	// ï¿½ï¿½ï¿½ë²¼ï¿½ï¿½
 	m_inputLayoutDesc =
 	{
 		  { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -358,7 +358,7 @@ void D3D12InitApp::BuildByteCodeAndInputLayout() {
 }
 
 bool D3D12InitApp::Init(HINSTANCE hInstance, int nShowCmd) {
-	// ´ò¿ªD3D12µ÷ÊÔ²ã
+	// ï¿½ï¿½D3D12ï¿½ï¿½ï¿½Ô²ï¿½
 #if defined(DEBUG) | defined(_DEBUG)
 	ComPtr<ID3D12Debug> debugController;
 	ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
@@ -376,7 +376,7 @@ bool D3D12InitApp::Init(HINSTANCE hInstance, int nShowCmd) {
 	BuildGeometry();
 	BuildPSO();
 
-	// ÕâÀï¹Ø±ÕÃüÁîÁÐ±í»áÅ×³öÒì³££¬Ã²ËÆÊÇËµÒÑ¾­¹Ø±ÕÁË£¿
+	// ï¿½ï¿½ï¿½ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ï¿½ï¿½ï¿½×³ï¿½ï¿½ì³£ï¿½ï¿½Ã²ï¿½ï¿½ï¿½ï¿½Ëµï¿½Ñ¾ï¿½ï¿½Ø±ï¿½ï¿½Ë£ï¿½
 	ThrowIfFailed(m_cmdList->Close());
 	ID3D12CommandList* cmdLists[] = { m_cmdList.Get() };
 	m_cmdQueue->ExecuteCommandLists(_countof(cmdLists), cmdLists);
@@ -386,7 +386,7 @@ bool D3D12InitApp::Init(HINSTANCE hInstance, int nShowCmd) {
 	return true;
 }
 
-// »ñÈ¡¶¥µã»º³åÇøÃèÊö·û & Ë÷Òý»º³åÇøÃèÊö·û
+// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ã»ºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ & ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 D3D12_VERTEX_BUFFER_VIEW D3D12InitApp::GetVbv() const {
 	D3D12_VERTEX_BUFFER_VIEW vbv;
 	vbv.BufferLocation = m_vertexBufferGPU->GetGPUVirtualAddress();
@@ -408,7 +408,7 @@ D3D12_INDEX_BUFFER_VIEW D3D12InitApp::GetIbv() const {
 void D3D12InitApp::Update()
 {
 	ObjectConstants objConstants;
-	//¹¹½¨¹Û²ì¾ØÕó
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Û²ï¿½ï¿½ï¿½ï¿½
 	float x = m_radius * sinf(m_phi) * cosf(m_theta);
 	float y = m_radius * cosf(m_phi);
 	float z = m_radius * sinf(m_phi) * sinf(m_theta);
@@ -422,25 +422,25 @@ void D3D12InitApp::Update()
 	//XMVECTOR up = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
 	XMMATRIX v = XMMatrixLookAtLH(pos, target, up);
 
-	//¹¹½¨Í¶Ó°¾ØÕó
+	//ï¿½ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½ï¿½
 	XMMATRIX p = XMMatrixPerspectiveFovLH(0.25f * 3.1416f, 1280.0f / 720.0f, 1.0f, 1000.0f);
 	//XMStoreFloat4x4(&proj, p);
-	//¹¹½¨ÊÀ½ç¾ØÕó
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	//XMMATRIX w = XMLoadFloat4x4(&world);
-	//¾ØÕó¼ÆËã
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	XMMATRIX WVP_Matrix = v * p;
-	//XMMATRIX¸³Öµ¸øXMFLOAT4X4
+	//XMMATRIXï¿½ï¿½Öµï¿½ï¿½XMFLOAT4X4
 	XMStoreFloat4x4(&objConstants.worldViewProj, XMMatrixTranspose(WVP_Matrix));
-	//½«Êý¾Ý¿½±´ÖÁGPU»º´æ
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ï¿½ï¿½GPUï¿½ï¿½ï¿½ï¿½
 	m_objCB->CopyData(0, objConstants);
 }
 
-// Êó±ê²Ù×ÝÏà¹Ø
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void D3D12InitApp::OnMouseDown(WPARAM btnState, int x, int y) {
-	m_lastMousePos.x = x;	//°´ÏÂµÄÊ±ºò¼ÇÂ¼×ø±êx·ÖÁ¿
-	m_lastMousePos.y = y;	//°´ÏÂµÄÊ±ºò¼ÇÂ¼×ø±êy·ÖÁ¿
+	m_lastMousePos.x = x;	//ï¿½ï¿½ï¿½Âµï¿½Ê±ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½xï¿½ï¿½ï¿½ï¿½
+	m_lastMousePos.y = y;	//ï¿½ï¿½ï¿½Âµï¿½Ê±ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½yï¿½ï¿½ï¿½ï¿½
 
-	SetCapture(m_hwnd);	//ÔÚÊôÓÚµ±Ç°Ïß³ÌµÄÖ¸¶¨´°¿ÚÀï£¬ÉèÖÃÊó±ê²¶»ñ
+	SetCapture(m_hwnd);	//ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½Ç°ï¿½ß³Ìµï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê²¶ï¿½ï¿½
 }
 
 void D3D12InitApp::OnMouseUp(WPARAM btnState, int x, int y) {
@@ -448,28 +448,28 @@ void D3D12InitApp::OnMouseUp(WPARAM btnState, int x, int y) {
 }
 
 void D3D12InitApp::OnMouseMove(WPARAM btnState, int x, int y) {
-	if ((btnState & MK_LBUTTON) != 0)//Èç¹ûÔÚ×ó¼ü°´ÏÂ×´Ì¬
+	if ((btnState & MK_LBUTTON) != 0)//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬
 	{
-		//½«Êó±êµÄÒÆ¶¯¾àÀë»»Ëã³É»¡¶È£¬0.25Îªµ÷½ÚãÐÖµ
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ë»»ï¿½ï¿½É»ï¿½ï¿½È£ï¿½0.25Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµ
 		float dx = XMConvertToRadians(static_cast<float>(m_lastMousePos.x - x) * 0.25f);
 		float dy = XMConvertToRadians(static_cast<float>(m_lastMousePos.y - y) * 0.25f);
-		//¼ÆËãÊó±êÃ»ÓÐËÉ¿ªÇ°µÄÀÛ¼Æ»¡¶È
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½É¿ï¿½Ç°ï¿½ï¿½ï¿½Û¼Æ»ï¿½ï¿½ï¿½
 		m_theta += dx;
 		m_phi += dy;
-		//ÏÞÖÆ½Ç¶ÈphiµÄ·¶Î§ÔÚ£¨0.1£¬ Pi-0.1£©
+		//ï¿½ï¿½ï¿½Æ½Ç¶ï¿½phiï¿½Ä·ï¿½Î§ï¿½Ú£ï¿½0.1ï¿½ï¿½ Pi-0.1ï¿½ï¿½
 		m_theta = MathHelper::Clamp(m_theta, 0.1f, 3.1416f - 0.1f);
 	}
-	else if ((btnState & MK_RBUTTON) != 0)//Èç¹ûÔÚÓÒ¼ü°´ÏÂ×´Ì¬
+	else if ((btnState & MK_RBUTTON) != 0)//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¼ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬
 	{
-		//½«Êó±êµÄÒÆ¶¯¾àÀë»»Ëã³ÉËõ·Å´óÐ¡£¬0.005Îªµ÷½ÚãÐÖµ
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ë»»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å´ï¿½Ð¡ï¿½ï¿½0.005Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµ
 		float dx = 0.005f * static_cast<float>(x - m_lastMousePos.x);
 		float dy = 0.005f * static_cast<float>(y - m_lastMousePos.y);
-		//¸ù¾ÝÊó±êÊäÈë¸üÐÂÉãÏñ»ú¿ÉÊÓ·¶Î§°ë¾¶
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó·ï¿½Î§ï¿½ë¾¶
 		m_radius += dx - dy;
-		//ÏÞÖÆ¿ÉÊÓ·¶Î§°ë¾¶
+		//ï¿½ï¿½ï¿½Æ¿ï¿½ï¿½Ó·ï¿½Î§ï¿½ë¾¶
 		m_radius = MathHelper::Clamp(m_radius, 1.0f, 20.0f);
 	}
-	//½«µ±Ç°Êó±ê×ø±ê¸³Öµ¸ø¡°ÉÏÒ»´ÎÊó±ê×ø±ê¡±£¬ÎªÏÂÒ»´ÎÊó±ê²Ù×÷Ìá¹©ÏÈÇ°Öµ
+	//ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê¸³Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê¡±ï¿½ï¿½Îªï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á¹©ï¿½ï¿½Ç°Öµ
 	m_lastMousePos.x = x;
 	m_lastMousePos.y = y;
 }
@@ -477,7 +477,7 @@ void D3D12InitApp::OnMouseMove(WPARAM btnState, int x, int y) {
 void D3D12InitApp::OnResize() {
 	D3D12App::OnResize();
 
-	// ¹¹½¨Í¶Ó°¾ØÕó
+	// ï¿½ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½ï¿½
 	XMMATRIX p = XMMatrixPerspectiveFovLH(0.25f * 3.1416f, static_cast<float>(m_clientWidth) / m_clientHight, 1.0f, 1000.0f);
 	XMStoreFloat4x4(&m_proj, p);
 }

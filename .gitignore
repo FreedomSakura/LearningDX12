@@ -396,3 +396,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+Zero-Processing/LearningDX12/LearningDX12.vcxproj
