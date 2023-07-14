@@ -131,9 +131,9 @@ void D3D12InitApp::OnResize() {
 
 bool D3D12InitApp::Draw() {
 	//1、重置命令列表 & 命令分配器
-	auto currCmdAllocator = m_currFrameResource->m_cmdAllocator;	// 获取当前帧资源的命令分配器
-	ThrowIfFailed(m_cmdAllocator->Reset()); 
-	ThrowIfFailed(m_cmdList->Reset(currCmdAllocator.Get(), m_PSO.Get())); // 记得传入PSO
+	//auto currCmdAllocator = m_currFrameResource->m_cmdAllocator;	// 获取当前帧资源的命令分配器
+	ThrowIfFailed(m_currFrameResource->m_cmdAllocator->Reset());
+	ThrowIfFailed(m_cmdList->Reset(m_currFrameResource->m_cmdAllocator.Get(), m_PSO.Get())); // 记得传入PSO
 
 	UINT& ref_mCurrentBackBuffer = m_currentBackBuffer;
 	//2、切换后台缓冲区状态（设置资源屏障）
@@ -215,6 +215,9 @@ bool D3D12InitApp::Draw() {
 		&resBarrier
 	);
 
+	// 更新常量缓冲区
+	Update();
+
 	// 7、关闭命令列表，并将命令列表中的命令传送到命令队列中
 	ThrowIfFailed(m_cmdList->Close());
 
@@ -225,9 +228,6 @@ bool D3D12InitApp::Draw() {
 	ThrowIfFailed(m_swapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING));
 	ref_mCurrentBackBuffer = (ref_mCurrentBackBuffer + 1) % 2;
 
-
-	// 更新常量缓冲区
-	Update();
 
 	//10、围栏同步CPU和GPU
 	//FlushCmdQueue();
