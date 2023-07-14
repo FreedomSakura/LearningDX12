@@ -8,6 +8,7 @@
 #include "UploadBufferResource.h"
 #include "GeometryGenerator.h"
 #include "RenderItem.h"
+#include "FrameResources.h"
 
 using namespace DirectX;
 
@@ -46,8 +47,8 @@ private:
 
 	// 构建渲染项！（实例化物体！）
 	void BuildRenderItem();
-	// 绘制多个物体
-	void DrawRenderItems();
+	void DrawRenderItems(); // 绘制多个物体
+	void BuildFrameResources(); // 构建帧资源
 
 	// 获取顶点缓冲区描述符 & 索引缓冲区描述符
 	D3D12_VERTEX_BUFFER_VIEW GetVbv() const;
@@ -90,5 +91,10 @@ private:
 	std::map<std::string, SubmeshGeometry> m_mapDrawArgs;
 	// 渲染项
 	std::vector<std::unique_ptr<RenderItem>> m_allRItem;
+	// 帧资源数量
+	int m_frameResourceCount = 3;
+	std::vector<std::unique_ptr<FrameResources>> m_frameResourcesList;
+	int m_currFrameResourceIndex = 0;
+	FrameResources* m_currFrameResource = nullptr;
 };
 
