@@ -14,6 +14,7 @@ struct VColorData
 struct ObjectConstants
 {
 	XMFLOAT4X4 worldViewProj = MathHelper::Identity4x4();
+	float gTime = 0.0f;
 };
 
 bool D3D12InitApp::Init(HINSTANCE hInstance, int nShowCmd) {
@@ -67,9 +68,10 @@ void D3D12InitApp::Update()
 	XMMATRIX WVP_Matrix = v * p;
 	XMStoreFloat4x4(&objConstants.worldViewProj, XMMatrixTranspose(WVP_Matrix));
 	m_objCB->CopyData(0, objConstants);
+	// 将时间传到m_objCB中
+	//objConstants.gTime = m_gt.TotalTime();
 }
 
-// ���������
 void D3D12InitApp::OnMouseDown(WPARAM btnState, int x, int y) {
 	m_lastMousePos.x = x;	
 	m_lastMousePos.y = y;	
@@ -381,8 +383,8 @@ void D3D12InitApp::BuildPSO() {
 	psoDesc.pRootSignature = m_rootSignature.Get();
 	psoDesc.VS = { reinterpret_cast<BYTE*>(m_vsBytecode->GetBufferPointer()), m_vsBytecode->GetBufferSize() };
 	psoDesc.PS = { reinterpret_cast<BYTE*>(m_psBytecode->GetBufferPointer()), m_psBytecode->GetBufferSize() };
-	//psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	//psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	psoDesc.SampleMask = UINT_MAX;	

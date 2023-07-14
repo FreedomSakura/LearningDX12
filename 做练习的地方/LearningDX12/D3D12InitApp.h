@@ -16,7 +16,7 @@ class D3D12InitApp : public D3D12App
 {
 public:
     D3D12InitApp() {};
-    ~D3D12InitApp() {};
+	virtual ~D3D12InitApp() {};
 
 public:
 	virtual bool Init(HINSTANCE hInstance, int nShowCmd) override;
