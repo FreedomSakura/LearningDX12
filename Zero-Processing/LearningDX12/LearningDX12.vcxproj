@@ -144,14 +144,16 @@
     <ClInclude Include="FrameResources.h" />
     <ClInclude Include="GameTime.h" />
     <ClInclude Include="GeometryGenerator.h" />
+    <ClInclude Include="LandAndWaves.h" />
     <ClInclude Include="RenderItem.h" />
     <ClInclude Include="ToolFunc.h" />
     <ClInclude Include="UploadBufferResource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="D3D12App.cpp" />
-    <ClCompile Include="D3D12InitApp.cpp" />
-    <ClCompile Include="D3D12InitApp.h" />
+    <ClCompile Include="LandAndWaves.cpp" />
+    <ClCompile Include="ShapesApp.cpp" />
+    <ClCompile Include="ShapesApp.h" />
     <ClCompile Include="FrameResources.cpp" />
     <ClCompile Include="GameTime.cpp" />
     <ClCompile Include="GeometryGenerator.cpp" />

@@ -1,6 +1,6 @@
 ﻿// LearningDX12.cpp : 定义应用程序的入口点。
 
-#include "D3D12InitApp.h"
+#include "LandAndWaves.h"
 
 #define MAX_LOADSTRING 100
 
@@ -17,7 +17,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, in
 #endif
     try
     {
-        D3D12InitApp theApp;
+        LandAndWaves theApp;
         if (!theApp.Init(hInstance, nShowCmd))
             return 0;
 

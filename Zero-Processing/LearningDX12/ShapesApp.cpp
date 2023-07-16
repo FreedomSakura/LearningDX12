@@ -1,6 +1,6 @@
-#include "D3D12InitApp.h"
+#include "ShapesApp.h"
 
-bool D3D12InitApp::Init(HINSTANCE hInstance, int nShowCmd) {
+bool ShapesApp::Init(HINSTANCE hInstance, int nShowCmd) {
 #if defined(DEBUG) | defined(_DEBUG)
 	ComPtr<ID3D12Debug> debugController;
 	ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
@@ -31,7 +31,7 @@ bool D3D12InitApp::Init(HINSTANCE hInstance, int nShowCmd) {
 	return true;
 }
 
-void D3D12InitApp::Update()
+void ShapesApp::Update()
 {
 	// 处理帧资源的同步
 	// 循环往复地获取帧资源数组中的元素
@@ -68,7 +68,7 @@ void D3D12InitApp::Update()
 	XMMATRIX v = XMMatrixLookAtLH(pos, target, up);
 
 	// 每个物体都要有一个常量缓冲区（主要装world矩阵）
-	for (auto& e : m_allRItem)
+	for (auto& e : m_allRItems)
 	{
 		m_world = e->world;
 		// 构建世界矩阵
@@ -91,18 +91,18 @@ void D3D12InitApp::Update()
 }
 
 // 鼠标相关
-void D3D12InitApp::OnMouseDown(WPARAM btnState, int x, int y) {
+void ShapesApp::OnMouseDown(WPARAM btnState, int x, int y) {
 	m_lastMousePos.x = x;	
 	m_lastMousePos.y = y;	
 
 	SetCapture(m_hwnd);
 }
 
-void D3D12InitApp::OnMouseUp(WPARAM btnState, int x, int y) {
+void ShapesApp::OnMouseUp(WPARAM btnState, int x, int y) {
 	ReleaseCapture();
 }
 
-void D3D12InitApp::OnMouseMove(WPARAM btnState, int x, int y) {
+void ShapesApp::OnMouseMove(WPARAM btnState, int x, int y) {
 	if ((btnState & MK_LBUTTON) != 0)
 	{
 		float dx = XMConvertToRadians(static_cast<float>(m_lastMousePos.x - x) * 0.25f);
@@ -122,14 +122,14 @@ void D3D12InitApp::OnMouseMove(WPARAM btnState, int x, int y) {
 	m_lastMousePos.y = y;
 }
 
-void D3D12InitApp::OnResize() {
+void ShapesApp::OnResize() {
 	D3D12App::OnResize();
 
 	//XMMATRIX p = XMMatrixPerspectiveFovLH(0.25f * 3.1416f, m_clientWidth / m_clientHeight, 1.0f, 1000.0f);
 	//XMStoreFloat4x4(&m_proj, p);
 }
 
-bool D3D12InitApp::Draw() {
+bool ShapesApp::Draw() {
 	//1、重置命令列表 & 命令分配器
 	//auto currCmdAllocator = m_currFrameResource->m_cmdAllocator;	// 获取当前帧资源的命令分配器
 	ThrowIfFailed(m_currFrameResource->m_cmdAllocator->Reset());
@@ -191,7 +191,7 @@ bool D3D12InitApp::Draw() {
 	m_cmdList->SetGraphicsRootSignature(m_rootSignature.Get());
 
 	// 设置全局的常量缓冲区（装viewproj矩阵）
-	int passCbvIndex = m_frameResourceCount * (UINT)m_allRItem.size() + m_currFrameResourceIndex;
+	int passCbvIndex = m_frameResourceCount * (UINT)m_allRItems.size() + m_currFrameResourceIndex;
 	auto passCbvHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_cbvHeap->GetGPUDescriptorHandleForHeapStart());
 	passCbvHandle.Offset(passCbvIndex, m_cbv_srv_uavDescriptorSize);
 	m_cmdList->SetGraphicsRootDescriptorTable(
@@ -241,8 +241,8 @@ bool D3D12InitApp::Draw() {
 
 
 // 创建常量描述符堆 & 常量缓冲区资源
-bool D3D12InitApp::CreateCBV() {
-	UINT objectCount = (UINT)m_allRItem.size();  // 物体总个数（包含实例）
+bool ShapesApp::CreateCBV() {
+	UINT objectCount = (UINT)m_allRItems.size();  // 物体总个数（包含实例）
 	UINT objConstSize = CalcConstantBufferByteSize(sizeof(ObjectConstants));
 	UINT passConstSize = CalcConstantBufferByteSize(sizeof(PassConstants));
 	
@@ -297,7 +297,7 @@ bool D3D12InitApp::CreateCBV() {
 }
 
 // 创建根签名
-void D3D12InitApp::BuildRootSignature() {
+void ShapesApp::BuildRootSignature() {
 	//根参数
 	CD3DX12_ROOT_PARAMETER slotRootParameter[2];
 	//创建由单个CBV所组成的描述符表
@@ -353,102 +353,73 @@ void D3D12InitApp::BuildRootSignature() {
 }
 
 // 构建几何体
-void D3D12InitApp::BuildGeometry() {
+void ShapesApp::BuildGeometry() {
 	GeometryGenerator geometryGenerator;
-	GeometryGenerator::MeshData box = geometryGenerator.CreateBox(1.5f, 0.5f, 1.5f, 3);
-	GeometryGenerator::MeshData grid = geometryGenerator.CreateGrid(20.0f, 30.0f, 60, 40);
-	GeometryGenerator::MeshData sphere = geometryGenerator.CreateGeosphere(1, 2);
-	GeometryGenerator::MeshData cylinder = geometryGenerator.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20);
+	GeometryGenerator::MeshData grid = geometryGenerator.CreateGrid(160.0f, 160.0f, 50, 50);
 
-	// 计算单个几何体顶点在总顶点数组中的偏移量
-	UINT boxVertexOffset = 0;
-	UINT gridVertexOffset = (UINT)box.Vertices.size();
-	UINT sphereVertexOffset = (UINT)grid.Vertices.size() + gridVertexOffset;
-	UINT cylinderVertexOffset = (UINT)sphere.Vertices.size() + sphereVertexOffset;
-
-	//计算单个几何体索引在总索引数组中的偏移量,顺序为：box、grid、sphere、cylinder
-	UINT boxIndexOffset = 0;
-	UINT gridIndexOffset = (UINT)box.Indices32.size();
-	UINT sphereIndexOffset = (UINT)grid.Indices32.size() + gridIndexOffset;
-	UINT cylinderIndexOffset = (UINT)sphere.Indices32.size() + sphereIndexOffset;
-
-	// DrawCall绘制一个物体需要有三个属性：索引数量、顶点起始索引位置、子物体起始索引在全局索引中的位置
-
-	SubmeshGeometry boxSubmesh;
-	boxSubmesh.indexCount = (UINT)box.Indices32.size();
-	boxSubmesh.baseVertexLocation = boxVertexOffset;
-	boxSubmesh.startIndexLocation = boxIndexOffset;
-
+	// 封装grid的顶点、索引数据
 	SubmeshGeometry gridSubmesh;
 	gridSubmesh.indexCount = (UINT)grid.Indices32.size();
-	gridSubmesh.baseVertexLocation = gridVertexOffset;
-	gridSubmesh.startIndexLocation = gridIndexOffset;
-
-	SubmeshGeometry sphereSubmesh;
-	sphereSubmesh.indexCount = (UINT)sphere.Indices32.size();
-	sphereSubmesh.baseVertexLocation = sphereVertexOffset;
-	sphereSubmesh.startIndexLocation = sphereIndexOffset;
-
-	SubmeshGeometry cylinderSubmesh;
-	cylinderSubmesh.indexCount = (UINT)cylinder.Indices32.size();
-	cylinderSubmesh.baseVertexLocation = cylinderVertexOffset;
-	cylinderSubmesh.startIndexLocation = cylinderIndexOffset;
+	gridSubmesh.baseVertexLocation = 0;
+	gridSubmesh.startIndexLocation = 0;
 
 	// 创建一个超级大的顶点缓存，并将所有物体的顶点数据存进去
-	size_t totalVertexCount = box.Vertices.size() + grid.Vertices.size() + sphere.Vertices.size() + cylinder.Vertices.size();
+	size_t totalVertexCount = grid.Vertices.size();
 	std::vector<Vertex> vertices(totalVertexCount);	//给定顶点数组大小
 	int k = 0;
-	for (int i = 0; i < box.Vertices.size(); i++, k++)
+	for (int i = 0; i < grid.Vertices.size(); i++)
 	{
-		vertices[k].Pos = box.Vertices[i].Position;
-		vertices[k].Color = XMFLOAT4(DirectX::Colors::Yellow);
-	}
-	for (int i = 0; i < grid.Vertices.size(); i++, k++)
-	{
-		vertices[k].Pos = grid.Vertices[i].Position;
-		vertices[k].Color = XMFLOAT4(DirectX::Colors::Brown);
-	}
-	for (int i = 0; i < sphere.Vertices.size(); i++, k++)
-	{
-		vertices[k].Pos = sphere.Vertices[i].Position;
-		vertices[k].Color = XMFLOAT4(DirectX::Colors::Green);
-	}
-	for (int i = 0; i < cylinder.Vertices.size(); i++, k++)
-	{
-		vertices[k].Pos = cylinder.Vertices[i].Position;
-		vertices[k].Color = XMFLOAT4(DirectX::Colors::Blue);
+		vertices[i].Pos = grid.Vertices[i].Position;
+		//vertices[i].Pos.y = GetHillHeight(vertices[i].Pos.x, vertices[i].Pos.z);
+
+		//根据顶点不同的y值，给予不同的顶点色(不同海拔对应的颜色)
+		if (vertices[i].Pos.y < -10.0f)
+		{
+			vertices[i].Color = XMFLOAT4(1.0f, 0.96f, 0.62f, 1.0f);
+		}
+		else if (vertices[i].Pos.y < 5.0f)
+		{
+			vertices[i].Color = XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
+		}
+		else if (vertices[i].Pos.y < 12.0f)
+		{
+			vertices[i].Color = XMFLOAT4(0.1f, 0.48f, 0.19f, 1.0f);
+		}
+		else if (vertices[i].Pos.y < 20.0f)
+		{
+			vertices[i].Color = XMFLOAT4(0.45f, 0.39f, 0.34f, 1.0f);
+		}
+		else
+		{
+			vertices[i].Color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		}
 	}
 
-	// 同理，再创建一个超级大的索引缓存
-	std::vector<std::uint16_t> indices;
-	indices.insert(indices.end(), box.GetIndices16().begin(), box.GetIndices16().end());
-	indices.insert(indices.end(), grid.GetIndices16().begin(), grid.GetIndices16().end());
-	indices.insert(indices.end(), sphere.GetIndices16().begin(), sphere.GetIndices16().end());
-	indices.insert(indices.end(), cylinder.GetIndices16().begin(), cylinder.GetIndices16().end());
+	//创建索引缓存
+	std::vector<std::uint16_t> indices = grid.GetIndices16();
+
+	// 计算顶点缓存 & 索引缓存大小
+	const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
+	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
+	m_vbByteSize = vbByteSize;
+	m_ibByteSize = ibByteSize;
 
 
-	m_vbByteSize = (UINT)vertices.size() * sizeof(GeometryGenerator::Vertex);
-	m_ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
-	// 创建CPU系统空间
+	// 将顶点缓存&索引缓存的位置定位到GPU上
 	ThrowIfFailed(D3DCreateBlob(m_vbByteSize, m_vertexBufferCPU.GetAddressOf()));
 	ThrowIfFailed(D3DCreateBlob(m_ibByteSize, m_indexBufferCPU.GetAddressOf()));
-	// 拷贝顶点&索引数据到CPU系统空间
 	CopyMemory(m_vertexBufferCPU->GetBufferPointer(), vertices.data(), m_vbByteSize);
 	CopyMemory(m_indexBufferCPU->GetBufferPointer(), indices.data(), m_ibByteSize);
-	// 在GPU上创建默认堆
 	m_vertexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), m_vbByteSize, vertices.data(), m_vertexBufferUploader);
 	m_indexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), m_ibByteSize, indices.data(), m_indexBufferUploader);
 
 	//  存放在BuildGeometry阶段确定的各个物体的DrawCall参数，用于后续DrawCall使用
-	m_mapDrawArgs.insert(std::make_pair("box", boxSubmesh));
 	m_mapDrawArgs.insert(std::make_pair("grid", gridSubmesh));
-	m_mapDrawArgs.insert(std::make_pair("sphere", sphereSubmesh));
-	m_mapDrawArgs.insert(std::make_pair("cylinder", cylinderSubmesh));
 
 }
 
 // 设置管线状态对象
-void D3D12InitApp::BuildPSO() {
+void ShapesApp::BuildPSO() {
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 	psoDesc.InputLayout = { m_inputLayoutDesc.data(), (UINT)m_inputLayoutDesc.size() };
@@ -456,7 +427,7 @@ void D3D12InitApp::BuildPSO() {
 	psoDesc.VS = { reinterpret_cast<BYTE*>(m_vsBytecode->GetBufferPointer()), m_vsBytecode->GetBufferSize() };
 	psoDesc.PS = { reinterpret_cast<BYTE*>(m_psBytecode->GetBufferPointer()), m_psBytecode->GetBufferSize() };
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+	//psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	psoDesc.SampleMask = UINT_MAX;	
@@ -471,7 +442,7 @@ void D3D12InitApp::BuildPSO() {
 	ThrowIfFailed(m_d3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_PSO)));
 }
 
-void D3D12InitApp::BuildByteCodeAndInputLayout() {
+void ShapesApp::BuildByteCodeAndInputLayout() {
 	// 编译shader
 	HRESULT hr = S_OK;
 	m_vsBytecode = ToolFunc::CompileShader(L"Shaders\\color.hlsl", nullptr, "VS", "vs_5_0");
@@ -484,7 +455,7 @@ void D3D12InitApp::BuildByteCodeAndInputLayout() {
 	};
 }
 
-D3D12_VERTEX_BUFFER_VIEW D3D12InitApp::GetVbv() const {
+D3D12_VERTEX_BUFFER_VIEW ShapesApp::GetVbv() const {
 	D3D12_VERTEX_BUFFER_VIEW vbv;
 	vbv.BufferLocation = m_vertexBufferGPU->GetGPUVirtualAddress();
 	vbv.StrideInBytes = sizeof(Vertex);
@@ -493,7 +464,7 @@ D3D12_VERTEX_BUFFER_VIEW D3D12InitApp::GetVbv() const {
 	return vbv;
 }
 
-D3D12_INDEX_BUFFER_VIEW D3D12InitApp::GetIbv() const {
+D3D12_INDEX_BUFFER_VIEW ShapesApp::GetIbv() const {
 	D3D12_INDEX_BUFFER_VIEW ibv;
 	ibv.BufferLocation = m_indexBufferGPU->GetGPUVirtualAddress();
 	ibv.Format = DXGI_FORMAT_R16_UINT;
@@ -503,7 +474,7 @@ D3D12_INDEX_BUFFER_VIEW D3D12InitApp::GetIbv() const {
 }
 
 // 构建渲染项！（实例化物体！）
-void D3D12InitApp::BuildRenderItem() {
+void ShapesApp::BuildRenderItem() {
 	auto boxRitem = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&(boxRitem->world), XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(0.0f, 0.5f, 0.0f));
 	boxRitem->objCBIndex = 0;//BOX常量数据（world矩阵）在objConstantBuffer索引0上
@@ -511,7 +482,7 @@ void D3D12InitApp::BuildRenderItem() {
 	boxRitem->indexCount = m_mapDrawArgs["box"].indexCount;
 	boxRitem->baseVertexLocation = m_mapDrawArgs["box"].baseVertexLocation;
 	boxRitem->startIndexLocation = m_mapDrawArgs["box"].startIndexLocation;
-	m_allRItem.push_back(std::move(boxRitem));
+	m_allRItems.push_back(std::move(boxRitem));
 
 	auto gridRitem = std::make_unique<RenderItem>();
 	gridRitem->world = MathHelper::Identity4x4();
@@ -520,7 +491,7 @@ void D3D12InitApp::BuildRenderItem() {
 	gridRitem->indexCount = m_mapDrawArgs["grid"].indexCount;
 	gridRitem->baseVertexLocation = m_mapDrawArgs["grid"].baseVertexLocation;
 	gridRitem->startIndexLocation = m_mapDrawArgs["grid"].startIndexLocation;
-	m_allRItem.push_back(std::move(gridRitem));
+	m_allRItems.push_back(std::move(gridRitem));
 
 	UINT fllowObjCBIndex = 2;//接下去的几何体常量数据在CB中的索引从2开始
 	//将圆柱和圆的实例模型存入渲染项中
@@ -565,18 +536,18 @@ void D3D12InitApp::BuildRenderItem() {
 		rightSphereRitem->baseVertexLocation = m_mapDrawArgs["sphere"].baseVertexLocation;
 		rightSphereRitem->startIndexLocation = m_mapDrawArgs["sphere"].startIndexLocation;
 
-		m_allRItem.push_back(std::move(leftCylinderRitem));
-		m_allRItem.push_back(std::move(rightCylinderRitem));
-		m_allRItem.push_back(std::move(leftSphereRitem));
-		m_allRItem.push_back(std::move(rightSphereRitem));
+		m_allRItems.push_back(std::move(leftCylinderRitem));
+		m_allRItems.push_back(std::move(rightCylinderRitem));
+		m_allRItems.push_back(std::move(leftSphereRitem));
+		m_allRItems.push_back(std::move(rightSphereRitem));
 	}
 }
 
 // 绘制多个物体
-void D3D12InitApp::DrawRenderItems() 
+void ShapesApp::DrawRenderItems() 
 {
 	std::vector<RenderItem*> ritems;
-	for (auto& e : m_allRItem)
+	for (auto& e : m_allRItems)
 		ritems.push_back(e.get());
 
 	for (size_t i = 0; i < ritems.size(); ++i)
@@ -588,7 +559,7 @@ void D3D12InitApp::DrawRenderItems()
 		m_cmdList->IASetPrimitiveTopology(ritem->primitiveType);
 
 		// 设置根描述符表
-		UINT objCbvIndex = m_currFrameResourceIndex * (UINT)m_allRItem.size() + ritem->objCBIndex;
+		UINT objCbvIndex = m_currFrameResourceIndex * (UINT)m_allRItems.size() + ritem->objCBIndex;
 		auto handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_cbvHeap->GetGPUDescriptorHandleForHeapStart());
 		handle.Offset(objCbvIndex, m_cbv_srv_uavDescriptorSize);
 		m_cmdList->SetGraphicsRootDescriptorTable(
@@ -609,13 +580,18 @@ void D3D12InitApp::DrawRenderItems()
 }
 
 // 构建帧资源
-void D3D12InitApp::BuildFrameResources() {
+void ShapesApp::BuildFrameResources() {
 	for (int i = 0; i < m_frameResourceCount; ++i) {
 		m_frameResourcesList.push_back(std::make_unique<FrameResources>(
 				m_d3dDevice.Get(),
 				1,	// passCount
-				(UINT)m_allRItem.size()	// objCount
+				(UINT)m_allRItems.size()	// objCount
 			)
 		);
 	}
+}
+
+float ShapesApp::GetHillsHeight(float x, float z)
+{
+	return 0.3f * (z * sinf(0.1f * x) + x * cosf(0.1f * z));
 }

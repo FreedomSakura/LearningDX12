@@ -112,7 +112,7 @@ protected:
 	POINT m_lastMousePos;
 	float m_theta = 1.5f * XM_PI;
 	float m_phi = XM_PIDIV4;
-	float m_radius = 10.0f;
+	float m_radius = 200.0f;
 
 	// AppµÄ×´Ì¬
 	bool m_isAppPaused = false;

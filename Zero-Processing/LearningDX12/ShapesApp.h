@@ -21,16 +21,16 @@ struct SubmeshGeometry
 	UINT baseVertexLocation;
 };
 
-class D3D12InitApp : public D3D12App
+class ShapesApp : public D3D12App
 {
 public:
-    D3D12InitApp() {};
-    ~D3D12InitApp() {};
+    ShapesApp() {};
+    ~ShapesApp() {};
 
 public:
 	virtual bool Init(HINSTANCE hInstance, int nShowCmd) override;
 
-private:
+protected:
     virtual bool Draw() override;
 	virtual void Update() override;	// 更新矩阵（实际上是更新 常量缓冲区）
 	virtual void OnResize() override;
@@ -40,21 +40,23 @@ private:
 
 	// 绘制图形需要添加的管线操作
 	bool CreateCBV();
-	void BuildRootSignature(); // 创建根签名
+	virtual void BuildRootSignature(); // 创建根签名
 	void BuildByteCodeAndInputLayout(); // 输入布局描述与编译shader字节码
-	void BuildGeometry(); // 构建几何体（准备好顶点和索引数据）
+	virtual void BuildGeometry(); // 构建几何体（准备好顶点和索引数据）
 	void BuildPSO(); // 构建PSO（PipeLineStateObject）—— 将之前定义的各种东西绑定到渲染流水线上！
 
 	// 构建渲染项！（实例化物体！）
-	void BuildRenderItem();
-	void DrawRenderItems(); // 绘制多个物体
-	void BuildFrameResources(); // 构建帧资源
+	virtual void BuildRenderItem();
+	virtual void DrawRenderItems(); // 绘制多个物体
+	virtual void BuildFrameResources(); // 构建帧资源
 
 	// 获取顶点缓冲区描述符 & 索引缓冲区描述符
 	D3D12_VERTEX_BUFFER_VIEW GetVbv() const;
 	D3D12_INDEX_BUFFER_VIEW GetIbv() const;
 
-private:
+	float GetHillsHeight(float x, float z);
+
+protected:
 	// CPU内存
 	ComPtr<ID3DBlob> m_vertexBufferCPU;
 	ComPtr<ID3DBlob> m_indexBufferCPU;
@@ -90,7 +92,7 @@ private:
 	// 用来存放在BuildGeometry阶段确定的各个物体的DrawCall参数，用于后续DrawCall使用
 	std::map<std::string, SubmeshGeometry> m_mapDrawArgs;
 	// 渲染项
-	std::vector<std::unique_ptr<RenderItem>> m_allRItem;
+	std::vector<std::unique_ptr<RenderItem>> m_allRItems;
 	// 帧资源数量
 	int m_frameResourceCount = 3;
 	std::vector<std::unique_ptr<FrameResources>> m_frameResourcesList;

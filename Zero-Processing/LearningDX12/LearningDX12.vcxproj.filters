@@ -33,6 +33,12 @@
     <ClInclude Include="RenderItem.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="FrameResources.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="LandAndWaves.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LearningDX12.cpp">
@@ -47,13 +53,19 @@
     <ClCompile Include="ToolFunc.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="D3D12InitApp.h">
+    <ClCompile Include="ShapesApp.h">
       <Filter>头文件</Filter>
     </ClCompile>
-    <ClCompile Include="D3D12InitApp.cpp">
+    <ClCompile Include="ShapesApp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="GeometryGenerator.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FrameResources.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="LandAndWaves.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
