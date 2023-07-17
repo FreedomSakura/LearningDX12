@@ -43,38 +43,46 @@ void LandAndWaves::BuildGeometry()
 		}
 	}
 
+	// 这里引入新的MeshGeometry来存放顶点&索引数据，并为后续动态顶点变化引入结构支持
+	auto geo = std::make_unique<MeshGeometry>();
+	geo->name = "landGeo";
+
 	//创建索引缓存
 	std::vector<std::uint16_t> indices = grid.GetIndices16();
 
 	// 计算顶点缓存 & 索引缓存大小
 	const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
 	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
-	m_vbByteSize = vbByteSize;
-	m_ibByteSize = ibByteSize;
-
+	geo->m_vbByteSize = vbByteSize;
+	geo->m_ibByteSize = ibByteSize;
+	geo->m_vbByteSize = sizeof(Vertex);
+	geo->m_indexFormat = DXGI_FORMAT_R16_UINT;
 
 	// 将顶点缓存&索引缓存的位置定位到GPU上
-	ThrowIfFailed(D3DCreateBlob(m_vbByteSize, m_vertexBufferCPU.GetAddressOf()));
-	ThrowIfFailed(D3DCreateBlob(m_ibByteSize, m_indexBufferCPU.GetAddressOf()));
-	CopyMemory(m_vertexBufferCPU->GetBufferPointer(), vertices.data(), m_vbByteSize);
-	CopyMemory(m_indexBufferCPU->GetBufferPointer(), indices.data(), m_ibByteSize);
-	m_vertexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), m_vbByteSize, vertices.data(), m_vertexBufferUploader);
-	m_indexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), m_ibByteSize, indices.data(), m_indexBufferUploader);
+	ThrowIfFailed(D3DCreateBlob(vbByteSize, geo->m_vertexBufferCPU.GetAddressOf()));
+	ThrowIfFailed(D3DCreateBlob(ibByteSize, geo->m_indexBufferCPU.GetAddressOf()));
+	CopyMemory(geo->m_vertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
+	CopyMemory(geo->m_indexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
+	geo->m_vertexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), vbByteSize, vertices.data(), geo->m_vertexBufferUploader);
+	geo->m_indexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), ibByteSize, indices.data(), geo->m_indexBufferUploader);
 
-	//  存放在BuildGeometry阶段确定的各个物体的DrawCall参数，用于后续DrawCall使用
+	// 存放在BuildGeometry阶段确定的各个物体的DrawCall参数，用于后续DrawCall使用
 	m_mapDrawArgs.insert(std::make_pair("grid", gridSubmesh));
+	// 将整个MeshGeometry存入一个总的map中供App维护，下属的顶点属性、顶点资源什么的由物体的RenderItem自己维护
+	m_geometries["landGeo"] = std::move(geo);
 }
 
 void LandAndWaves::BuildRenderItem()
 {
-	auto gridRitem = std::make_unique<RenderItem>();
-	gridRitem->world = MathHelper::Identity4x4();
-	gridRitem->objCBIndex = 0;
-	gridRitem->primitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-	gridRitem->indexCount = m_mapDrawArgs["grid"].indexCount;
-	gridRitem->baseVertexLocation = m_mapDrawArgs["grid"].baseVertexLocation;
-	gridRitem->startIndexLocation = m_mapDrawArgs["grid"].startIndexLocation;
-	m_allRItems.push_back(std::move(gridRitem));
+	auto landRitem = std::make_unique<RenderItem>();
+	landRitem->world = MathHelper::Identity4x4();
+	landRitem->objCBIndex = 0;
+	landRitem->primitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	landRitem->geo = m_geometries["landGeo"].get();
+	landRitem->indexCount = landRitem->geo->m_mapDrawArgs["landGrid"].indexCount;
+	landRitem->baseVertexLocation = landRitem->geo->m_mapDrawArgs["landGrid"].baseVertexLocation;
+	landRitem->startIndexLocation = landRitem->geo->m_mapDrawArgs["landGrid"].startIndexLocation;
+	m_allRItems.push_back(std::move(landRitem));
 }
 
 void LandAndWaves::BuildRootSignature()
@@ -169,8 +177,8 @@ void LandAndWaves::DrawRenderItems()
 	{
 		auto ritem = ritems[i];
 
-		m_cmdList->IASetVertexBuffers(0, 1, &GetVbv());
-		m_cmdList->IASetIndexBuffer(&GetIbv());
+		m_cmdList->IASetVertexBuffers(0, 1, &ritem->geo->GetVbv());
+		m_cmdList->IASetIndexBuffer(&ritem->geo->GetIbv());
 		m_cmdList->IASetPrimitiveTopology(ritem->primitiveType);
 
 		// 设置根描述符，将根描述符与资源绑定

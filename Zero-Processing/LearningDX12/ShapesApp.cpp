@@ -366,7 +366,6 @@ void ShapesApp::BuildGeometry() {
 	// 创建一个超级大的顶点缓存，并将所有物体的顶点数据存进去
 	size_t totalVertexCount = grid.Vertices.size();
 	std::vector<Vertex> vertices(totalVertexCount);	//给定顶点数组大小
-	int k = 0;
 	for (int i = 0; i < grid.Vertices.size(); i++)
 	{
 		vertices[i].Pos = grid.Vertices[i].Position;
@@ -395,27 +394,33 @@ void ShapesApp::BuildGeometry() {
 		}
 	}
 
+	// 这里引入新的MeshGeometry来存放顶点&索引数据，并为后续动态顶点变化引入结构支持
+	auto geo = std::make_unique<MeshGeometry>();
+	geo->name = "landGeo";
+
 	//创建索引缓存
 	std::vector<std::uint16_t> indices = grid.GetIndices16();
 
 	// 计算顶点缓存 & 索引缓存大小
 	const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
 	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
-	m_vbByteSize = vbByteSize;
-	m_ibByteSize = ibByteSize;
-
+	geo->m_vbByteSize = vbByteSize;
+	geo->m_ibByteSize = ibByteSize;
+	geo->m_vbByteSize = sizeof(Vertex);
+	geo->m_indexFormat = DXGI_FORMAT_R16_UINT;
 
 	// 将顶点缓存&索引缓存的位置定位到GPU上
-	ThrowIfFailed(D3DCreateBlob(m_vbByteSize, m_vertexBufferCPU.GetAddressOf()));
-	ThrowIfFailed(D3DCreateBlob(m_ibByteSize, m_indexBufferCPU.GetAddressOf()));
-	CopyMemory(m_vertexBufferCPU->GetBufferPointer(), vertices.data(), m_vbByteSize);
-	CopyMemory(m_indexBufferCPU->GetBufferPointer(), indices.data(), m_ibByteSize);
-	m_vertexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), m_vbByteSize, vertices.data(), m_vertexBufferUploader);
-	m_indexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), m_ibByteSize, indices.data(), m_indexBufferUploader);
+	ThrowIfFailed(D3DCreateBlob(vbByteSize, geo->m_vertexBufferCPU.GetAddressOf()));
+	ThrowIfFailed(D3DCreateBlob(ibByteSize, geo->m_indexBufferCPU.GetAddressOf()));
+	CopyMemory(geo->m_vertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
+	CopyMemory(geo->m_indexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
+	geo->m_vertexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), vbByteSize, vertices.data(), geo->m_vertexBufferUploader);
+	geo->m_indexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), ibByteSize, indices.data(), geo->m_indexBufferUploader);
 
-	//  存放在BuildGeometry阶段确定的各个物体的DrawCall参数，用于后续DrawCall使用
+	// 存放在BuildGeometry阶段确定的各个物体的DrawCall参数，用于后续DrawCall使用
 	m_mapDrawArgs.insert(std::make_pair("grid", gridSubmesh));
-
+	// 将整个MeshGeometry存入一个总的map中供App维护，下属的顶点属性、顶点资源什么的由物体的RenderItem自己维护
+	m_geometries["landGeo"] = std::move(geo);
 }
 
 // 设置管线状态对象
@@ -453,24 +458,6 @@ void ShapesApp::BuildByteCodeAndInputLayout() {
 		  { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		  { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
-}
-
-D3D12_VERTEX_BUFFER_VIEW ShapesApp::GetVbv() const {
-	D3D12_VERTEX_BUFFER_VIEW vbv;
-	vbv.BufferLocation = m_vertexBufferGPU->GetGPUVirtualAddress();
-	vbv.StrideInBytes = sizeof(Vertex);
-	vbv.SizeInBytes = m_vbByteSize;
-
-	return vbv;
-}
-
-D3D12_INDEX_BUFFER_VIEW ShapesApp::GetIbv() const {
-	D3D12_INDEX_BUFFER_VIEW ibv;
-	ibv.BufferLocation = m_indexBufferGPU->GetGPUVirtualAddress();
-	ibv.Format = DXGI_FORMAT_R16_UINT;
-	ibv.SizeInBytes = m_ibByteSize;
-
-	return ibv;
 }
 
 // 构建渲染项！（实例化物体！）
@@ -554,8 +541,8 @@ void ShapesApp::DrawRenderItems()
 	{
 		auto ritem = ritems[i];
 
-		m_cmdList->IASetVertexBuffers(0, 1, &GetVbv());
-		m_cmdList->IASetIndexBuffer(&GetIbv());
+		m_cmdList->IASetVertexBuffers(0, 1, &m_geometries["landGeo"]->GetVbv());
+		m_cmdList->IASetIndexBuffer(&m_geometries["landGeo"]->GetIbv());
 		m_cmdList->IASetPrimitiveTopology(ritem->primitiveType);
 
 		// 设置根描述符表

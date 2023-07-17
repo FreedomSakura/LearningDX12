@@ -14,12 +14,6 @@ using namespace DirectX;
 
 struct ObjectConstants;
 struct PassConstants;
-struct SubmeshGeometry
-{
-	UINT indexCount;
-	UINT startIndexLocation;
-	UINT baseVertexLocation;
-};
 
 class ShapesApp : public D3D12App
 {
@@ -50,25 +44,9 @@ protected:
 	virtual void DrawRenderItems(); // 绘制多个物体
 	virtual void BuildFrameResources(); // 构建帧资源
 
-	// 获取顶点缓冲区描述符 & 索引缓冲区描述符
-	D3D12_VERTEX_BUFFER_VIEW GetVbv() const;
-	D3D12_INDEX_BUFFER_VIEW GetIbv() const;
-
 	float GetHillsHeight(float x, float z);
 
 protected:
-	// CPU内存
-	ComPtr<ID3DBlob> m_vertexBufferCPU;
-	ComPtr<ID3DBlob> m_indexBufferCPU;
-	// 默认堆
-	ComPtr<ID3D12Resource> m_vertexBufferGPU;
-	ComPtr<ID3D12Resource> m_indexBufferGPU;
-	
-	UINT m_vbByteSize = 0;
-	UINT m_ibByteSize = 0;
-	// 上传堆资源
-	ComPtr<ID3D12Resource> m_vertexBufferUploader = nullptr;
-	ComPtr<ID3D12Resource> m_indexBufferUploader = nullptr;
 	// 常量缓冲区描述符堆
 	ComPtr<ID3D12DescriptorHeap> m_cbvHeap;
 	// 常量缓冲区资源对象
@@ -98,5 +76,8 @@ protected:
 	std::vector<std::unique_ptr<FrameResources>> m_frameResourcesList;
 	int m_currFrameResourceIndex = 0;
 	FrameResources* m_currFrameResource = nullptr;
+
+	// 动态顶点缓冲区
+	std::map<std::string, std::unique_ptr<MeshGeometry>> m_geometries;
 };
 
