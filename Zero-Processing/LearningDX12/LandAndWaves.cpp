@@ -55,7 +55,7 @@ void LandAndWaves::BuildGeometry()
 	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
 	geo->m_vbByteSize = vbByteSize;
 	geo->m_ibByteSize = ibByteSize;
-	geo->m_vbByteSize = sizeof(Vertex);
+	geo->m_vByteStride = sizeof(Vertex);
 	geo->m_indexFormat = DXGI_FORMAT_R16_UINT;
 
 	// 将顶点缓存&索引缓存的位置定位到GPU上
@@ -67,13 +67,16 @@ void LandAndWaves::BuildGeometry()
 	geo->m_indexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(), m_cmdList.Get(), ibByteSize, indices.data(), geo->m_indexBufferUploader);
 
 	// 存放在BuildGeometry阶段确定的各个物体的DrawCall参数，用于后续DrawCall使用
-	m_mapDrawArgs.insert(std::make_pair("grid", gridSubmesh));
+	geo->m_mapDrawArgs.insert(std::make_pair("landGrid", gridSubmesh));
 	// 将整个MeshGeometry存入一个总的map中供App维护，下属的顶点属性、顶点资源什么的由物体的RenderItem自己维护
 	m_geometries["landGeo"] = std::move(geo);
+
+	BuildLakeIndexBuffer();
 }
 
 void LandAndWaves::BuildRenderItem()
 {
+	// “山川”的渲染项
 	auto landRitem = std::make_unique<RenderItem>();
 	landRitem->world = MathHelper::Identity4x4();
 	landRitem->objCBIndex = 0;
@@ -83,6 +86,20 @@ void LandAndWaves::BuildRenderItem()
 	landRitem->baseVertexLocation = landRitem->geo->m_mapDrawArgs["landGrid"].baseVertexLocation;
 	landRitem->startIndexLocation = landRitem->geo->m_mapDrawArgs["landGrid"].startIndexLocation;
 	m_allRItems.push_back(std::move(landRitem));
+
+	// “湖泊”的渲染项
+	auto lakeRitem = std::make_unique<RenderItem>();
+	lakeRitem->world = MathHelper::Identity4x4();
+	lakeRitem->objCBIndex = 1;
+	lakeRitem->geo = m_geometries["lakeGeo"].get();
+	lakeRitem->primitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	lakeRitem->indexCount = lakeRitem->geo->m_mapDrawArgs["lakeGrid"].indexCount;
+	lakeRitem->baseVertexLocation = lakeRitem->geo->m_mapDrawArgs["lakeGrid"].baseVertexLocation;
+	lakeRitem->startIndexLocation = lakeRitem->geo->m_mapDrawArgs["lakeGrid"].startIndexLocation;
+
+	m_waveRitem = lakeRitem.get();
+
+	m_allRItems.push_back(std::move(lakeRitem)); // push_back后，智能指针自动释放内存
 }
 
 void LandAndWaves::BuildRootSignature()
@@ -142,6 +159,8 @@ bool LandAndWaves::Init(HINSTANCE hInstance, int nShowCmd)
 
 	ThrowIfFailed(m_cmdList->Reset(m_cmdAllocator.Get(), nullptr));
 
+	// 初始化波浪类
+	m_waves = std::make_unique<Waves>(128, 128, 1.0f, 0.03f, 4.0f, 0.2f);
 
 	BuildRootSignature();
 	BuildByteCodeAndInputLayout();
@@ -267,6 +286,8 @@ bool LandAndWaves::Draw()
 		passCB->GetGPUVirtualAddress()
 	);
 
+	UpdateWaves(m_gt);
+
 	// 绘制渲染项
 	DrawRenderItems();
 
@@ -304,4 +325,110 @@ bool LandAndWaves::Draw()
 	m_cmdQueue->Signal(m_fence.Get(), m_currentFence);
 
 	return true;
+}
+
+void LandAndWaves::BuildFrameResources() {
+	for (int i = 0; i < m_frameResourceCount; ++i) {
+		m_frameResourcesList.push_back(std::make_unique<FrameResources>(
+				m_d3dDevice.Get(),
+				1,	// passCount
+				(UINT)m_allRItems.size(),	// objCount
+				m_waves->VertexCount()
+			)
+		);
+	}
+}
+
+void LandAndWaves::BuildLakeIndexBuffer()
+{
+	//初始化索引列表（每个三角形3个索引）
+	std::vector<std::uint16_t> indices(3 * m_waves->TriangleCount());
+	assert(m_waves->VertexCount() < 0x0000ffff);//顶点索引数大于65536则中止程序
+
+	//填充索引列表
+	int m = m_waves->RowCount();
+	int n = m_waves->ColumnCount();
+	int k = 0;
+	for (int i = 0; i < m - 1; i++)
+	{
+		for (int j = 0; j < n - 1; j++)
+		{
+			indices[k] = i * n + j;
+			indices[k + 1] = i * n + j + 1;
+			indices[k + 2] = (i + 1) * n + j;
+
+			indices[k + 3] = (i + 1) * n + j;
+			indices[k + 4] = i * n + j + 1;
+			indices[k + 5] = (i + 1) * n + j + 1;
+
+			k += 6;
+		}
+	}
+	//计算顶点和索引缓存大小
+	UINT vbByteSize = m_waves->VertexCount() * sizeof(Vertex);
+	UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
+
+	auto geo = std::make_unique<MeshGeometry>();
+	geo->name = "lakeGeo";
+
+	geo->m_vertexBufferCPU = nullptr;
+	geo->m_vertexBufferGPU = nullptr;
+	//创建索引的CPU系统内存
+	ThrowIfFailed(D3DCreateBlob(ibByteSize, &geo->m_indexBufferCPU));
+	//将索引列表存入CPU系统内存
+	CopyMemory(geo->m_indexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
+	//将索引数据通过上传堆传至默认堆
+	geo->m_indexBufferGPU = ToolFunc::CreateDefaultBuffer(m_d3dDevice.Get(),
+		m_cmdList.Get(),
+		ibByteSize,
+		indices.data(),
+		geo->m_indexBufferUploader);
+
+	//赋值MeshGeomety中相关属性
+	geo->m_vbByteSize = vbByteSize;
+	geo->m_vByteStride = sizeof(Vertex);
+	geo->m_indexFormat = DXGI_FORMAT_R16_UINT;
+	geo->m_ibByteSize = ibByteSize;
+
+	SubmeshGeometry LakeSubmesh;
+	LakeSubmesh.baseVertexLocation = 0;
+	LakeSubmesh.startIndexLocation = 0;
+	LakeSubmesh.indexCount = (UINT)indices.size();
+	//使用grid几何体
+	geo->m_mapDrawArgs["lakeGrid"] = LakeSubmesh;
+	//湖泊的MeshGeometry
+	m_geometries["lakeGeo"] = std::move(geo);
+}
+
+void LandAndWaves::UpdateWaves(const GameTime& gt)
+{
+	static float t_base = 0.0f;
+	if ((m_gt.TotalTime() - t_base) >= 0.25f)
+	{
+		t_base += 0.25f;	//0.25秒生成一个波浪
+		//随机生成横坐标
+		int i = MathHelper::Rand(4, m_waves->RowCount() - 5);
+		//随机生成纵坐标
+		int j = MathHelper::Rand(4, m_waves->ColumnCount() - 5);
+		//随机生成波的半径
+		float r = MathHelper::RandF(0.2f, 0.5f);//float用RandF函数
+		//使用波动方程函数生成波纹
+		m_waves->Disturb(i, j, r);
+	}
+
+	//每帧更新波浪模拟（即更新顶点坐标）
+	m_waves->Update(gt.DeltaTime());
+
+	//将更新的顶点坐标存入GPU上传堆中
+	auto currWavesVB = m_currFrameResource->m_waveVB.get();
+	for (int i = 0; i < m_waves->VertexCount(); i++)
+	{
+		Vertex v;
+		v.Pos = m_waves->Position(i);
+		v.Color = XMFLOAT4(DirectX::Colors::Blue);
+
+		currWavesVB->CopyData(i, v);
+	}
+	//赋值湖泊的GPU上的顶点缓存
+	m_waveRitem->geo->m_vertexBufferGPU = currWavesVB->Resource();
 }

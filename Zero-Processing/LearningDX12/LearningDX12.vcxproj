@@ -148,6 +148,7 @@
     <ClInclude Include="RenderItem.h" />
     <ClInclude Include="ToolFunc.h" />
     <ClInclude Include="UploadBufferResource.h" />
+    <ClInclude Include="Waves.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="D3D12App.cpp" />
@@ -159,6 +160,7 @@
     <ClCompile Include="GeometryGenerator.cpp" />
     <ClCompile Include="LearningDX12.cpp" />
     <ClCompile Include="ToolFunc.cpp" />
+    <ClCompile Include="Waves.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LearningDX12.rc" />
